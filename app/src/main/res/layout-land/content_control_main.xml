@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             tools:context="com.light.mbt.delight.ControlPageActivity">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/constraintLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0.5"
+            android:background="@drawable/roundbox"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintHorizontal_bias="0.526"
+            app:layout_constraintLeft_toLeftOf="@+id/parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.533">
+
+            <ImageButton
+                android:id="@+id/PowerButton"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="@dimen/y46"
+                android:adjustViewBounds="false"
+                android:background="@drawable/mybutton"
+                android:cropToPadding="false"
+                android:onClick="onPower"
+                android:scaleType="centerCrop"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/img_btn_power_on_off"/>
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintLeft_toLeftOf="@+id/seekBar"
+                app:layout_constraintTop_toBottomOf="@+id/seekBar"
+                app:srcCompat="@mipmap/sun1_icon"/>
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintRight_toRightOf="@+id/seekBar"
+                app:layout_constraintTop_toBottomOf="@+id/seekBar"
+                app:srcCompat="@mipmap/sun_icon"
+                />
+
+            <!--
+            maxHeight : 最大高度
+            -->
+            <SeekBar
+                android:id="@+id/seekBar"
+                style="@style/Widget.AppCompat.SeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="160dp"
+                android:max="255"
+                android:maxHeight="10dp"
+                android:progress="255"
+                android:progressDrawable="@drawable/seekbar_progressbar"
+                android:secondaryProgress="255"
+                android:thumb="@drawable/seekbar_thumb"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/constraintLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0.5"
+            android:background="@drawable/roundbox"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="@+id/constraintLayout"
+            app:layout_constraintRight_toRightOf="@+id/constraintLayout"
+            app:layout_constraintTop_toTopOf="@+id/constraintLayout">
+
+            <ImageButton
+                android:id="@+id/TimerButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/mybutton"
+                android:onClick="onTimer"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toTopOf="@+id/frameLayout2"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/img_btn_hourglass_on_off"/>
+
+            <ImageButton
+                android:id="@+id/PlayButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/mybutton"
+                android:onClick="StartCountDownTimer"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toTopOf="@+id/frameLayout2"
+                app:layout_constraintLeft_toRightOf="@+id/TimerButton"
+                app:layout_constraintRight_toLeftOf="@+id/StopButton"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
+                app:srcCompat="@drawable/img_btn_play_on_off"/>
+
+            <ImageButton
+                android:id="@+id/StopButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/mybutton"
+                android:onClick="StopCountDownTimer"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toTopOf="@+id/frameLayout2"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
+                app:srcCompat="@drawable/img_btn_stop_on_off"/>
+
+            <FrameLayout
+                android:id="@+id/frameLayout2"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="128dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <com.light.mbt.delight.widget.WheelView
+                        android:id="@+id/wheel1"
+                        android:layout_width="fill_parent"
+                        android:layout_height="100dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_weight="1.0"/>
+
+                    <com.light.mbt.delight.widget.WheelView
+                        android:id="@+id/wheel2"
+                        android:layout_width="fill_parent"
+                        android:layout_height="100dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_weight="1.0"/>
+
+                    <com.light.mbt.delight.widget.WheelView
+                        android:id="@+id/wheel3"
+                        android:layout_width="fill_parent"
+                        android:layout_height="100dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_weight="1.0"/>
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="100dip">
+
+                    <View
+                        android:id="@+id/view1"
+                        android:layout_width="fill_parent"
+                        android:layout_height="1px"
+                        android:layout_marginLeft="0dip"
+                        android:layout_marginTop="35dip"
+                        android:background="#000000"/>
+
+                    <View
+                        android:id="@+id/view2"
+                        android:layout_width="fill_parent"
+                        android:layout_height="1px"
+                        android:layout_below="@id/view1"
+                        android:layout_marginLeft="0dip"
+                        android:layout_marginTop="35dip"
+                        android:background="#000000"/>
+
+                </RelativeLayout>
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="100dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/frameLayout2">
+
+                <TextView
+                    android:id="@+id/HoursView"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.0"
+                    android:text="Hours"
+                    android:textAlignment="center"/>
+
+                <TextView
+                    android:id="@+id/MinsView"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.0"
+                    android:text="Mins"
+                    android:textAlignment="center"/>
+
+                <TextView
+                    android:id="@+id/SecsView"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.0"
+                    android:text="Secs"
+                    android:textAlignment="center"/>
+            </LinearLayout>
+
+
+        </android.support.constraint.ConstraintLayout>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

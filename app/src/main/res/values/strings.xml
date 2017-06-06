@@ -1,0 +1,103 @@
+<resources>
+    <string name="app_name">Delight</string>
+    <string name="products_name">MBT Delight</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_add_dvice">Add</string>
+    <string name="action_edit_dvice">Edit</string>
+    <string name="action_del_dvice">Delete</string>
+
+    <!-- ReName AlertDialog -->
+    <string name="alertdialog_rename_title">Display name</string>
+    <string name="alertdialog_rename_meggage">Please, provise a new display name:</string>
+    <string name="alertdialog_rename_ok">OK</string>
+    <string name="alertdialog_rename_cancel">Cancel</string>
+
+    <!-- Image descriptors -->
+    <string name="image_splash_logo">Splash logo</string>
+
+    <!-- Bluetoolth -->
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="label_data">Data:</string>
+    <string name="label_device_address">Device address:</string>
+    <string name="label_state">State:</string>
+    <string name="no_data">No data</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="title_devices">BLE Device Scan</string>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="send_data">Send data</string>
+
+    <string name="unknown_device">Unknown device</string>
+    <string name="unknown_characteristic">Unknown characteristic</string>
+    <string name="unknown_service">Unknown service</string>
+
+    <string name="profile_scan_fragment">Delight BLE Devices</string>
+    <string name="alert_message_exit_ok">OK</string>
+    <string name="alert_message_bluetooth_reconnect">Please Turn Bluetooth ON</string>
+    <string name="alert_message_bluetooth_disconnect">The BLE device is disconnected</string>
+    <string name="alert_message_bluetooth_connect">The BLE device is connected</string>
+    <string name="alert_message_bonding_title">Bonding</string>
+    <string name="alert_message_bonding_message">Bonding is in process \nPlease wait..</string>
+    <string name="alert_message_connect_title">Device Connection</string>
+    <string name="alert_message_connect">Connecting to the device</string>
+    <string name="alert_message_wait">Please wait..</string>
+    <string name="alert_message_service_undiscovered">No services found</string>
+    <string name="progress_tile_service_discovering">Service Discovery</string>
+    <string name="progress_message_service_discovering">Discovering services. Please wait.</string>
+    <string name="progress_message_reconnect"> Reconnecting to device. Please wait.</string>
+
+    <!-- bluetooth button elements -->
+    <string name="bluetooth_pair_start">Pairing started…\nPlease wait…</string>
+    <string name="bluetooth_pair">Paired</string>
+    <string name="bluetooth_unpair">Not Paired</string>
+    <string name="bluetooth_pair_unpair_failed">Pair/Unpair failed</string>
+
+    <!-- Device discovery elements -->
+    <string name="device_unknown">Unknown device</string>
+    <string name="device_ble_not_supported">Bluetooth Low Energy not supported on device</string>
+    <string name="device_bluetooth_on">Bluetooth turned on successfully</string>
+    <string name="device_bluetooth_not_supported">Bluetooth not supported on device</string>
+    <string name="device_signal_strength">RSSI:</string>
+    <string name="device_signal_strength_unit">dBm</string>
+
+    <!-- profile control elements -->
+    <string name="profile_control_unknown_service">Unknown Service</string>
+    <string name="profile_control_no_device_message">Pull down to refresh…</string>
+    <string name="profile_control_device_scanning">Refreshing, Please wait…</string>
+    <string name="profile_cannot_connect_message">Cannot connect to the device</string>
+    <string name="profile_control_stop_notification_toast">Notifications disabled</string>
+    <string name="profile_control_stop_indication_toast">Indications disabled</string>
+    <string name="profile_control_stop_both_notify_indicate_toast">All indications and notifications disabled</string>
+    <string name="enable_notify_failed">Failed to enable notification(s).
+        If you see this error repeatedly, disconnect and connect back to the device.</string>
+
+    <!-- Descriptor parser  -->
+    <string name="descriptor_notification_enabled">Notifications enabled</string>
+    <string name="descriptor_notification_disabled">Notifications disabled</string>
+    <string name="descriptor_indication_enabled">Indication enabled</string>
+    <string name="descriptor_indication_disabled">Indication disabled</string>
+    <string name="descriptor_reliablewrite_enabled">Reliable Write enabled</string>
+    <string name="descriptor_reliablewrite_disabled">Reliable Write disabled</string>
+    <string name="descriptor_writableauxillary_enabled">Writable Auxiliaries enabled</string>
+    <string name="descriptor_writableauxillary_disabled">Writable Auxiliaries disabled</string>
+    <string name="descriptor_broadcast_enabled">Broadcast enabled</string>
+    <string name="descriptor_broadcast_disabled">Broadcast disabled</string>
+
+    <string name="descriptor_bluetoothSIGAssignedNo">Bluetooth SIG Assigned Numbers</string>
+    <string name="descriptor_reservedforFutureUse">Reserved for future use</string>
+
+    <string name="descriptor_format">Format</string>
+    <string name="exponent">Exponent</string>
+    <string name="unit">Unit</string>
+    <string name="namespace">Namespace</string>
+    <string name="description">Description</string>
+
+    <string name="exchange_mtu">"Exchange GATT MTU"</string>
+    <string name="exchange_mtu_request">"[%1$s | %2$s] %3$s request, MTU: %4$d, Status: %5$d"</string>
+    <string name="exchange_mtu_rsp">"[%1$s | %2$s] %3$s request completed, MTU: %4$d, Status: %5$d"</string>
+
+</resources>
