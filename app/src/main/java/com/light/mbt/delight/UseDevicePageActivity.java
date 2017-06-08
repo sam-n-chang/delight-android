@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -237,12 +238,12 @@ public class UseDevicePageActivity extends AppCompatActivity
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            int arg2, long arg3) {
+                // TODO Auto-generated method stub
                 Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
                 //toolbar.setTitle("MBT Delight");  //設置標題
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 setSupportActionBar(toolbar);
 
-                //arg0.setSelected(true);
                 mDeviceList = new DeviceList();
                 mDeviceList = mLeDeviceListAdapter.getDevice(arg2);
 
@@ -250,7 +251,6 @@ public class UseDevicePageActivity extends AppCompatActivity
                 mLeDeviceListAdapter.notifyDataSetChanged();    //更新DeviceList
                 mSelectItem = true;
                 invalidateOptionsMenu();    //重新载入Menu
-                // TODO Auto-generated method stub
                 Logger.e(TAG, "setOnItemLongClickListener");
                 return true;
             }
@@ -346,9 +346,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         } else {
             Logger.v(TAG, "BLE OTHER STAT");
             // Connecting to some devices,so disconnect and then connect
-            //isFirstConnect = false;
-            //gotoControlActivity();
-            BluetoothLeService.disconnect();
+             BluetoothLeService.disconnect();
             Handler delayHandler = new Handler();
             delayHandler.postDelayed(new Runnable() {
                 @Override
@@ -390,7 +388,6 @@ public class UseDevicePageActivity extends AppCompatActivity
         Bundle bundle = new Bundle();
         bundle.putSerializable("DeviceList", mDeviceList);  //將DeviceList 傳到ControlPageActivity
         intent.putExtras(bundle);
-        //mLeDeviceListAdapter.cleanDevice();
         //finish();
         overridePendingTransition(R.anim.slide_right, R.anim.push_right);
         startActivity(intent);
@@ -442,6 +439,7 @@ public class UseDevicePageActivity extends AppCompatActivity
     public void onResume() {
         Logger.i(TAG, "UseDevice onResume");
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
+
         if (checkBluetoothStatus()) {
             mScanDeviceFind = true;
             scanLeDevice(true);
@@ -509,6 +507,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         //getMenuInflater().inflate(R.menu.home_main, menu); //menu Setting not use
         getMenuInflater().inflate(R.menu.home_main, menu);
+        menu.findItem(R.id.action_info).setVisible(false);
         if (mLeDeviceListAdapter.getSelectedItem() != -1) {
             menu.findItem(R.id.action_edit).setVisible(true);
             menu.findItem(R.id.action_del).setVisible(true);
@@ -531,6 +530,7 @@ public class UseDevicePageActivity extends AppCompatActivity
             case R.id.action_add:
                 scanLeDevice(false);
                 mScanDeviceFind = false;
+                Logger.i(TAG, "BLE DISCONNECT---->" + BluetoothLeService.getConnectionState());
                 Intent intent = new Intent(this, ScanPageActivity.class);
                 //finish();
                 overridePendingTransition(R.anim.slide_left, R.anim.push_left);
@@ -622,8 +622,6 @@ public class UseDevicePageActivity extends AppCompatActivity
                         String DeviceName = editText.getText().toString();
                         if (!DeviceName.equals("")) {
                             mDeviceList.setName(DeviceName);
-                            //int SelectItem = mLeDeviceListAdapter.getSelectedItem();
-                            //mLeDeviceListAdapter.DeviceList.remove(SelectItem);
                             String Address = mDeviceList.getDeviceAddress();
                             mLeDeviceListAdapter.mDeviceList.remove(Address);
                             mLeDeviceListAdapter.mDeviceList.put(Address, mDeviceList);
@@ -646,7 +644,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         mLeDeviceListAdapter.notifyDataSetChanged();
         mSelectItem = false;
         invalidateOptionsMenu();    //重新载入Menu
-    }
+     }
 
     public void cleanReName(View view) {
         Logger.i(TAG, editText.getText().toString());
@@ -678,4 +676,16 @@ public class UseDevicePageActivity extends AppCompatActivity
         }
     }
 
+    //自動隱藏虛擬按鍵
+    private void hideSystemNavigationBar() {
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) {
+            View view = this.getWindow().getDecorView();
+            view.setSystemUiVisibility(View.GONE);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+        }
+    }
 }

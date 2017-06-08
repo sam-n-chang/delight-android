@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.light.mbt.delight.CommonUtils.CountDownTimerUtil;
+import com.light.mbt.delight.CommonUtils.DeviceInformationService;
 import com.light.mbt.delight.CommonUtils.GattAttributes;
 import com.light.mbt.delight.CommonUtils.Logger;
 import com.light.mbt.delight.CommonUtils.Utils;
@@ -44,6 +45,7 @@ import java.util.TimerTask;
 import static com.light.mbt.delight.ListAdapters.NumberAdapter.normalColor;
 import static com.light.mbt.delight.ListAdapters.NumberAdapter.selectedColor;
 import static com.light.mbt.delight.R.id.seekBar;
+import static com.light.mbt.delight.UseDevicePageActivity.mLeDeviceListAdapter;
 import static com.light.mbt.delight.widget.WheelTextView.hoursArray;
 import static com.light.mbt.delight.widget.WheelTextView.minsecsArray;
 
@@ -71,12 +73,13 @@ public class ControlPageActivity extends AppCompatActivity {
     private String mDeviceName, mDeviceAddress;
 
     // GATT service and characteristics
-    private static BluetoothGattCharacteristic mReadCharacteristic;
+    private static BluetoothGattCharacteristic mReadCharacteristic = null;
+    private BluetoothGattService mDeviceInformationService = null;
 
     public static boolean mTimerStart = false;
     private boolean mPowerStatus = false, mTimerStatus = false, mWheelViewStatus = false,
             mConnected = false, FirstLaunch = false, initWheel = false,
-            mOrientation = false;
+            mOrientation = false, mReturnBack = false;
     private byte mPower = 0, mLAMP_Timer = 0, mTimeOne = 0, mTimeTwo = 0, mINTENSITY = -1;
     private long SaveTime = 0, timer_unit = 1000, countDownTimer = 0;
     private boolean BLUETOOTH_STATUS_FLAG = true;
@@ -164,10 +167,11 @@ public class ControlPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.i(TAG, "Control onCreate");
-        setContentView(R.layout.content_control_main);
+         setContentView(R.layout.content_control_main);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);  //增加左上角返回圖示
 
-        mAlert = new AlertDialog.Builder(this).create();
+         mAlert = new AlertDialog.Builder(this).create();
         mAlert.setMessage(getResources().getString(
                 R.string.alert_message_bluetooth_reconnect));
         mAlert.setCancelable(false);
@@ -241,16 +245,21 @@ public class ControlPageActivity extends AppCompatActivity {
 
     @Override
     public void onResume() {
-        FirstLaunch = true;
+        //FirstLaunch = true;
         Logger.i(TAG, "Control onResume");
-
+        if(mReadCharacteristic != null) {
+            stopBroadcastDataNotify(mReadCharacteristic);
+            prepareBroadcastDataRead(mReadCharacteristic);
+            prepareBroadcastDataNotify(mReadCharacteristic);
+            mReturnBack = true;
+        }
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
         if (BluetoothLeService.getConnectionState() == 0)
             BluetoothLeService.connect(mDeviceAddress, mDeviceName, ControlPageActivity.this);
 
         BLUETOOTH_STATUS_FLAG = true;
         registerReceiver(mGattUpdateReceiver, Utils.makeGattUpdateIntentFilter());
-
+        registerReceiver(DeviceInformationService.mGattUpdateReceiver, Utils.makeGattUpdateIntentFilter());
         super.onResume();
     }
 
@@ -258,6 +267,7 @@ public class ControlPageActivity extends AppCompatActivity {
     protected void onPause() {
         Logger.i(TAG, "Control onPause");
         unregisterReceiver(mGattUpdateReceiver);
+        unregisterReceiver(DeviceInformationService.mGattUpdateReceiver);
 
         if (mTimerStart == true)
             mTimerStart = false;
@@ -297,6 +307,8 @@ public class ControlPageActivity extends AppCompatActivity {
                 BluetoothLeService.getConnectionState() == 1 ||
                 BluetoothLeService.getConnectionState() == 4) {
             BluetoothLeService.disconnect();
+            mReadCharacteristic = null;
+
             Toast.makeText(this,
                     getResources().getString(R.string.alert_message_bluetooth_disconnect),
                     Toast.LENGTH_SHORT).show();
@@ -312,13 +324,19 @@ public class ControlPageActivity extends AppCompatActivity {
     private void SaveDeviceData() {
         Utils.setDeviceListArraySharedPreference(ControlPageActivity.this, "DEVICE_LIST", mDeviceList, false);
         //更新UseDevicePageActivity.mLeDeviceListAdapter
-        UseDevicePageActivity.mLeDeviceListAdapter.mDeviceList.put(mDeviceList.getDeviceAddress(), mDeviceList);
+        mLeDeviceListAdapter.mDeviceList.put(mDeviceList.getDeviceAddress(), mDeviceList);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         //getMenuInflater().inflate(R.menu.home_main, menu); //menu Setting not use
+        getMenuInflater().inflate(R.menu.home_main, menu);
+        menu.findItem(R.id.action_info).setVisible(true);
+        menu.findItem(R.id.action_edit).setVisible(false);
+        menu.findItem(R.id.action_del).setVisible(false);
+        menu.findItem(R.id.action_add).setVisible(false);
+
         return true;
     }
 
@@ -326,8 +344,10 @@ public class ControlPageActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-
                 onBackPressed();
+                return true;
+            case R.id.action_info:
+                DeviceInformationDialog();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -756,11 +776,11 @@ public class ControlPageActivity extends AppCompatActivity {
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
             uuid = gattService.getUuid().toString();
+            List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
 
             if (uuid.equals(GattAttributes.DELIGHT_LAMP_SERVICE)
                     || uuid.equals(GattAttributes.DELIGHT_LAMP_SERVICE_CUSTOM)) {
 
-                List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
                 String CharacteristicUUID = null;
 
                 // Loops through available Characteristics.
@@ -770,7 +790,10 @@ public class ControlPageActivity extends AppCompatActivity {
                             || CharacteristicUUID.equals(GattAttributes.DELIGHT_LAMP_CUSTOM))
                         mReadCharacteristic = gattCharacteristic;
                 }
-            }
+            } else if (uuid.equals(GattAttributes.DEVICE_INFORMATION_SERVICE)) {
+                mDeviceInformationService = gattService;
+           }
+
         }
         mProgressDialog.dismiss();
     }
@@ -837,7 +860,7 @@ public class ControlPageActivity extends AppCompatActivity {
             mINTENSITY = (byte) Integer.parseInt(AfterSplit[2]);    //String to int
             mSeekBar.setProgress(mINTENSITY & 0xff);   //byte to int
 
-            if (Integer.parseInt(AfterSplit[1]) == 0 && mPowerStatus == false && FirstLaunch == true) {
+            if ((Integer.parseInt(AfterSplit[1]) == 0 && mPowerStatus == false && FirstLaunch == true) || mReturnBack == true) {
                 if (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2) {
                     TimeOpen();
                     mTimerStart = true;
@@ -858,12 +881,13 @@ public class ControlPageActivity extends AppCompatActivity {
                 PowerOn(false);
             }
 
-            countDownTimer = (Integer.parseInt(AfterSplit[4]) * 256 + Integer.parseInt(AfterSplit[5])) * 1000;
-            Logger.i(TAG, "countDownTimer = " + countDownTimer);
-            if (mTimerStart == true && (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2)) {
+            if ((mTimerStart == true && (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2)) || mReturnBack == true) {
+                countDownTimer = (Integer.parseInt(AfterSplit[4]) * 256 + Integer.parseInt(AfterSplit[5])) * 1000;
+                Logger.i(TAG, "countDownTimer = " + countDownTimer);
                 formateTimer(countDownTimer);
                 if (countDownTimer == 0)
                     PowerOffUIUpdate();
+                mReturnBack = false;
             }
         }
     }
@@ -877,6 +901,21 @@ public class ControlPageActivity extends AppCompatActivity {
                 mAlert.dismiss();
         }
         BLUETOOTH_STATUS_FLAG2 = false;
+    }
+
+    private void DeviceInformationDialog() {
+        final View item = LayoutInflater.from(this).inflate(R.layout.device_information_measurement, null);
+        DeviceInformationService.Init(mDeviceInformationService, item); //初始化
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.alertdialog_device_info_title)
+                .setView(item)
+                .setPositiveButton(R.string.alertdialog_rename_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                     }
+                })
+                .show();
     }
 
 }

@@ -1,6 +1,5 @@
 package com.light.mbt.delight;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -69,7 +68,7 @@ public class ScanPageActivity extends AppCompatActivity {
 
     //Bluetooth adapter
     private static BluetoothAdapter mBluetoothAdapter;
-    private LeScanDeviceListAdapter mLeDeviceListAdapter;
+    private LeScanDeviceListAdapter mLeScanDeviceListAdapter;
 
     // Devices list variables
     public static ArrayList<BluetoothDevice> mLeDevices;
@@ -108,8 +107,6 @@ public class ScanPageActivity extends AppCompatActivity {
                 public void run() {
                     if (!mSearchEnabled) {
                         boolean FirstAdd = true;
-                        //mDeviceAddress = device.getAddress();
-                        //mDeviceName = device.getName();
 
                         //已加入Device List 清單不再加入掃描列表
                         if (mDeviceList.size() > 0) {
@@ -120,13 +117,12 @@ public class ScanPageActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                        //"00:A0:50:EE:F5:18"
-                        //if(mDeviceAddress.equals("00:15:83:00:49:C9"))    //指定Mac 地址
+
                         if (FirstAdd == true && device.getName().indexOf(BLUETOOTH_DEVICE_NAME) > -1)  //以名稱限制搜尋欄牙
-                            mLeDeviceListAdapter.addDevice(device, rssi);
+                            mLeScanDeviceListAdapter.addDevice(device, rssi);
                         //Logger.w(TAG, "Device Name = "+device.getName());
                         try {
-                            mLeDeviceListAdapter.notifyDataSetChanged();
+                            mLeScanDeviceListAdapter.notifyDataSetChanged();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -295,8 +291,8 @@ public class ScanPageActivity extends AppCompatActivity {
 
         mProfileListView = (ListView) findViewById(R.id.listView_profiles);
         mRefreshText = (TextView) findViewById(R.id.no_dev);
-        mLeDeviceListAdapter = new LeScanDeviceListAdapter(ScanPageActivity.this);
-        mProfileListView.setAdapter(mLeDeviceListAdapter);
+        mLeScanDeviceListAdapter = new LeScanDeviceListAdapter(ScanPageActivity.this);
+        mProfileListView.setAdapter(mLeScanDeviceListAdapter);
         mProfileListView.setTextFilterEnabled(true);
 
         mProgressdialog = new ProgressDialog(this);
@@ -321,10 +317,10 @@ public class ScanPageActivity extends AppCompatActivity {
                     public void onRefresh() {
                         if (!mScanning) {
                             // Prepare list view and initiate scanning
-                            if (mLeDeviceListAdapter != null) {
-                                mLeDeviceListAdapter.clear();
+                            if (mLeScanDeviceListAdapter != null) {
+                                mLeScanDeviceListAdapter.clear();
                                 try {
-                                    mLeDeviceListAdapter.notifyDataSetChanged();
+                                    mLeScanDeviceListAdapter.notifyDataSetChanged();
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -348,8 +344,8 @@ public class ScanPageActivity extends AppCompatActivity {
         mProfileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                if (mLeDeviceListAdapter.getCount() > 0) {
-                    final BluetoothDevice device = mLeDeviceListAdapter
+                if (mLeScanDeviceListAdapter.getCount() > 0) {
+                    final BluetoothDevice device = mLeScanDeviceListAdapter
                             .getDevice(position);
                     if (device != null) {
                         connectDevice(device, true);
@@ -383,10 +379,10 @@ public class ScanPageActivity extends AppCompatActivity {
     }
 
     private void gotoControlActivity() {
-        if (mLeDeviceListAdapter != null) {
-            mLeDeviceListAdapter.clear();
+        if (mLeScanDeviceListAdapter != null) {
+            mLeScanDeviceListAdapter.clear();
             try {
-                mLeDeviceListAdapter.notifyDataSetChanged();
+                mLeScanDeviceListAdapter.notifyDataSetChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -420,8 +416,8 @@ public class ScanPageActivity extends AppCompatActivity {
         deviceList.setDeviceName(mDeviceName);
         deviceList.setDeviceAddress(mDeviceAddress);
 
-        Utils.setDeviceListArraySharedPreference(ScanPageActivity.this, "DEVICE_LIST", deviceList, false);
-        UseDevicePageActivity.mLeDeviceListAdapter.addDevice(deviceList);
+        Utils.setDeviceListArraySharedPreference(ScanPageActivity.this, "DEVICE_LIST", deviceList, false);  //儲存新加入裝置
+        UseDevicePageActivity.mLeDeviceListAdapter.addDevice(deviceList);   //新加入裝置更新
 
         return deviceList;
     }
@@ -488,8 +484,8 @@ public class ScanPageActivity extends AppCompatActivity {
         // 修改抬頭名稱
         setTitle(R.string.profile_scan_fragment);
         // Prepare list view and initiate scanning
-        mLeDeviceListAdapter = new LeScanDeviceListAdapter(ScanPageActivity.this);
-        mProfileListView.setAdapter(mLeDeviceListAdapter);
+        mLeScanDeviceListAdapter = new LeScanDeviceListAdapter(ScanPageActivity.this);
+        mProfileListView.setAdapter(mLeScanDeviceListAdapter);
         scanLeDevice(true);
         mSearchEnabled = false;
     }
@@ -530,11 +526,11 @@ public class ScanPageActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         scanLeDevice(false);
-        if (mLeDeviceListAdapter != null)
-            mLeDeviceListAdapter.clear();
-        if (mLeDeviceListAdapter != null) {
+        if (mLeScanDeviceListAdapter != null)
+            mLeScanDeviceListAdapter.clear();
+        if (mLeScanDeviceListAdapter != null) {
             try {
-                mLeDeviceListAdapter.notifyDataSetChanged();
+                mLeScanDeviceListAdapter.notifyDataSetChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -588,31 +584,6 @@ public class ScanPageActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // User chose not to enable Bluetooth.
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            finish();
-        } else {
-            // Check which request we're responding to
-            if (requestCode == REQUEST_ENABLE_BT) {
-
-                // Make sure the request was successful
-                if (resultCode == Activity.RESULT_OK) {
-                    Toast.makeText(this,
-                            getResources().getString(
-                                    R.string.device_bluetooth_on),
-                            Toast.LENGTH_SHORT).show();
-                    mLeDeviceListAdapter = new LeScanDeviceListAdapter(ScanPageActivity.this);
-                    mProfileListView.setAdapter(mLeDeviceListAdapter);
-                    scanLeDevice(true);
-                } else {
-                    finish();
-                }
-            }
-        }
-    }
-
     private void scanLeDevice(final boolean enable) {
         if (enable) {
             if (!mScanning) {
@@ -650,11 +621,11 @@ public class ScanPageActivity extends AppCompatActivity {
                         Toast.makeText(ScanPageActivity.this,
                                 getResources().getString(R.string.profile_cannot_connect_message),
                                 Toast.LENGTH_SHORT).show();
-                        if (mLeDeviceListAdapter != null)
-                            mLeDeviceListAdapter.clear();
-                        if (mLeDeviceListAdapter != null) {
+                        if (mLeScanDeviceListAdapter != null)
+                            mLeScanDeviceListAdapter.clear();
+                        if (mLeScanDeviceListAdapter != null) {
                             try {
-                                mLeDeviceListAdapter.notifyDataSetChanged();
+                                mLeScanDeviceListAdapter.notifyDataSetChanged();
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -698,5 +669,4 @@ public class ScanPageActivity extends AppCompatActivity {
                 mAlert.dismiss();
         }
     }
-
 }

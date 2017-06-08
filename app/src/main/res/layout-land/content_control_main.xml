@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="match_parent"
-                                             tools:context="com.light.mbt.delight.ControlPageActivity">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                   xmlns:tools="http://schemas.android.com/tools"
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   tools:context="com.light.mbt.delight.ControlPageActivity"
+
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0">
+        android:orientation="horizontal">
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -34,13 +26,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_weight="0.5"
-            android:background="@drawable/roundbox"
-            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
-            app:layout_constraintHorizontal_bias="0.526"
-            app:layout_constraintLeft_toLeftOf="@+id/parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.533">
+            android:background="@drawable/roundbox">
 
             <ImageButton
                 android:id="@+id/PowerButton"
@@ -109,17 +95,14 @@
             android:id="@+id/constraintLayout2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_weight="0.5"
-            android:background="@drawable/roundbox"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toLeftOf="@+id/constraintLayout"
-            app:layout_constraintRight_toRightOf="@+id/constraintLayout"
-            app:layout_constraintTop_toTopOf="@+id/constraintLayout">
+            android:background="@drawable/roundbox">
 
             <ImageButton
                 android:id="@+id/TimerButton"
@@ -128,14 +111,15 @@
                 android:layout_marginBottom="32dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="onTimer"
                 android:scaleType="centerCrop"
                 app:layout_constraintBottom_toTopOf="@+id/frameLayout2"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/img_btn_hourglass_on_off"/>
+                app:srcCompat="@drawable/img_btn_hourglass_on_off"
+                app:layout_constraintVertical_bias="0.833"/>
 
             <ImageButton
                 android:id="@+id/PlayButton"
@@ -146,7 +130,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="StartCountDownTimer"
                 android:scaleType="centerCrop"
@@ -154,8 +138,8 @@
                 app:layout_constraintLeft_toRightOf="@+id/TimerButton"
                 app:layout_constraintRight_toLeftOf="@+id/StopButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.5"
-                app:srcCompat="@drawable/img_btn_play_on_off"/>
+                app:srcCompat="@drawable/img_btn_play_on_off"
+                app:layout_constraintVertical_bias="0.833"/>
 
             <ImageButton
                 android:id="@+id/StopButton"
@@ -163,16 +147,16 @@
                 android:layout_height="56dp"
                 android:layout_marginBottom="32dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginRight="21dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="StopCountDownTimer"
                 android:scaleType="centerCrop"
                 app:layout_constraintBottom_toTopOf="@+id/frameLayout2"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.5"
-                app:srcCompat="@drawable/img_btn_stop_on_off"/>
+                app:srcCompat="@drawable/img_btn_stop_on_off"
+                app:layout_constraintVertical_bias="0.666"/>
 
             <FrameLayout
                 android:id="@+id/frameLayout2"
@@ -183,7 +167,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="128dp"
+                android:layout_marginTop="100dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -291,4 +275,3 @@
 
     </LinearLayout>
 
-</android.support.constraint.ConstraintLayout>

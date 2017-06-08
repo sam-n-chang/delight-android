@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Delight</string>
     <string name="products_name">MBT Delight</string>
+    <string name="device_info">Device Information</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -9,6 +10,7 @@
     <string name="action_add_dvice">Add</string>
     <string name="action_edit_dvice">Edit</string>
     <string name="action_del_dvice">Delete</string>
+    <string name="action_info_dvice">Information</string>
 
     <!-- ReName AlertDialog -->
     <string name="alertdialog_rename_title">Display name</string>
@@ -74,6 +76,18 @@
     <string name="profile_control_stop_both_notify_indicate_toast">All indications and notifications disabled</string>
     <string name="enable_notify_failed">Failed to enable notification(s).
         If you see this error repeatedly, disconnect and connect back to the device.</string>
+
+    <!-- Device information profile elements -->
+    <string name="alertdialog_device_info_title">Device Information Display</string>
+    <string name="div_manufacturer_name">Manufacturer Name </string>
+    <string name="div_model_name">Model Number </string>
+    <string name="div_serial_name">Serial Number </string>
+    <string name="div_hardware_name">Hardware Revision </string>
+    <string name="div_firmware_name">Firmware Revision </string>
+    <string name="div_software_name">Software Revision </string>
+    <string name="div_system_name">System ID </string>
+    <string name="div_regulatory_name">Regulatory Certification Data List </string>
+    <string name="div_pnp_name">PnP ID </string>
 
     <!-- Descriptor parser  -->
     <string name="descriptor_notification_enabled">Notifications enabled</string>

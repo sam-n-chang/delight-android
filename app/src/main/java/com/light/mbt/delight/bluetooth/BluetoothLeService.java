@@ -134,6 +134,7 @@ public class BluetoothLeService extends Service {
     private final static BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Logger.i(TAG, "onConnectionStateChange");
             String intentAction;
             // GATT Server connected
             if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -144,8 +145,7 @@ public class BluetoothLeService extends Service {
                 broadcastConnectionUpdate(intentAction);
                 Logger.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
-                Logger.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+                Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             }
             // GATT Server disconnected
             else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -166,8 +166,7 @@ public class BluetoothLeService extends Service {
                 broadcastConnectionUpdate(intentAction);
                 Logger.i(TAG, "Connecting to GATT server.");
                 // Attempts to discover services after successful connection.
-                Logger.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+                Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             }
             // GATT Server disconnecting
             else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
@@ -223,7 +222,7 @@ public class BluetoothLeService extends Service {
                         "[00]";
                 Intent intent = new Intent(ACTION_WRITE_SUCCESS);
                 mContext.sendBroadcast(intent);
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
                 if (descriptor.getValue() != null)
                     addRemoveData(descriptor);
                 if (mDisableNotificationFlag) {
@@ -239,7 +238,7 @@ public class BluetoothLeService extends Service {
                         mContext.getResources().getString(R.string.dl_characteristic_write_request_status)
                         + mContext.getResources().getString(R.string.dl_status_failure) +
                         +status;
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
                 mDisableNotificationFlag = false;
                 Intent intent = new Intent(ACTION_WRITE_FAILED);
                 mContext.sendBroadcast(intent);
@@ -272,7 +271,7 @@ public class BluetoothLeService extends Service {
                         mContext.getResources().getString(R.string.dl_characteristic_read_response) +
                         mContext.getResources().getString(R.string.dl_commaseparator) +
                         "[" + descriptorValue + "]";
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
                 mBundle.putString(Constants.EXTRA_DESCRIPTOR_BYTE_VALUE_UUID,
                         descriptor.getUuid().toString());
                 mBundle.putString(Constants.EXTRA_DESCRIPTOR_BYTE_VALUE_CHARACTERISTIC_UUID,
@@ -313,7 +312,7 @@ public class BluetoothLeService extends Service {
                         mContext.getResources().getString(R.string.dl_characteristic_read_request_status) +
                         mContext.getResources().
                                 getString(R.string.dl_status_failure) + status;
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
             }
 
         }
@@ -333,7 +332,7 @@ public class BluetoothLeService extends Service {
                         mContext.getResources().getString(R.string.dl_characteristic_write_request_status)
                         + mContext.getResources().getString(R.string.dl_status_success);
 
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
             } else {
                 dataLog = "[" + serviceName + "|" + characteristicName + "] " +
                         mContext.getResources().getString(R.string.dl_characteristic_write_request_status) +
@@ -342,7 +341,7 @@ public class BluetoothLeService extends Service {
                 Intent intent = new Intent(ACTION_GATT_CHARACTERISTIC_ERROR);
                 intent.putExtra(Constants.EXTRA_CHARACTERISTIC_ERROR_MESSAGE, "" + status);
                 mContext.sendBroadcast(intent);
-                Logger.datalog(dataLog);
+                Logger.d(TAG, dataLog);
             }
 
             Logger.d(TAG, dataLog);
@@ -413,7 +412,7 @@ public class BluetoothLeService extends Service {
                     mtu,
                     status);
 
-            Logger.datalog(dataLog);
+            Logger.d(TAG, dataLog);
         }
 
         @Override
@@ -1011,6 +1010,8 @@ public class BluetoothLeService extends Service {
     public static void close() {
         mBluetoothGatt.close();
         mBluetoothGatt = null;
+
+        mConnectionState = STATE_DISCONNECTED;
     }
 
     @Override
@@ -1054,7 +1055,7 @@ public class BluetoothLeService extends Service {
 
         mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 
-        return true;
+        return  mBluetoothAdapter != null;
     }
 
     @Override
