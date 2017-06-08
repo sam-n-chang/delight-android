@@ -54,7 +54,14 @@
             android:windowSoftInputMode="adjustPan">
             <!--</intent-filter>-->
         </activity>
-
+        <activity
+            android:name=".AboutPageActivity"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan">
+            <!--</intent-filter>-->
+        </activity>
         <service android:name=".bluetooth.BluetoothLeService" android:enabled="true"/>
     </application>
 

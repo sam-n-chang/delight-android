@@ -3,6 +3,18 @@
     <string name="products_name">MBT Delight</string>
     <string name="device_info">Device Information</string>
 
+    <!-- Navigation drawer elements -->
+    <string name="title_devices">BLE Device Scan</string>
+    <string name="title_home">Home</string>
+    <string name="title_products">MBT Products</string>
+    <string name="title_contact">Contact Us</string>
+    <string name="title_about">About</string>
+
+    <!-- About -->
+    <string name="delight_version">Delight 1.0.0</string>
+    <string name="delight_copyright">Copyright © 2003-2015</string>
+    <string name="delight_company">Mathbright Technology Co., Ltd.</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
@@ -29,7 +41,6 @@
     <string name="no_data">No data</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
-    <string name="title_devices">BLE Device Scan</string>
     <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
     <string name="send_data">Send data</string>
 

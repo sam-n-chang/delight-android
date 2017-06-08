@@ -262,7 +262,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.products_name);  //設置標題
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);  //增加左上角返回圖示
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
@@ -576,8 +576,13 @@ public class UseDevicePageActivity extends AppCompatActivity
                 uri = Uri.parse("mailto:info@mathbright.com.tw");
                 intent = new Intent(Intent.ACTION_SENDTO, uri);
                 break;
+            case R.id.nav_about:
+                intent = new Intent(this, AboutPageActivity.class);
+                break;
         }
+        overridePendingTransition(R.anim.slide_left, R.anim.push_left);
         startActivity(intent);
+        overridePendingTransition(R.anim.slide_right, R.anim.push_right);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
