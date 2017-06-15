@@ -772,7 +772,7 @@ public abstract class TosAdapterView<T extends Adapter> extends ViewGroup {
                 // Note: mLeft, mTop, mRight and mBottom are hide to subclasses, so we
                 // should use methods instead of members.
 
-                this.onLayout(false, getLeft(), getTop(), getRight(), getBottom());
+                //this.onLayout(false, getLeft(), getTop(), getRight(), getBottom());
                 // Added by Li Hong at 2011/08/05 end
             }
         } else {

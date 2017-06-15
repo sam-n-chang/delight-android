@@ -54,7 +54,7 @@ public class UseDevicePageActivity extends AppCompatActivity
     // Connection time out after 10 seconds.
     private static final long CONNECTION_TIMEOUT = 10000;
     // Stops scanning after 2 seconds.
-    private static final long SCAN_PERIOD_TIMEOUT = 1000;
+    private static final long SCAN_PERIOD_TIMEOUT = 2000;
     // Activity request constant
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -74,7 +74,7 @@ public class UseDevicePageActivity extends AppCompatActivity
     public static String mDeviceAddress = "address";
 
     private DeviceList mDeviceList;
-    private ArrayList<DeviceList> mDeviceListArray;
+    public static ArrayList<DeviceList> mDeviceListArray;
     private boolean mScanning = false, mSelectItem = false, mScanDeviceFind = true;
     private boolean BLUETOOTH_STATUS_FLAG = true;
     public HashMap<String, BluetoothDevice> mScanDevice = new HashMap<String, BluetoothDevice>();
@@ -102,6 +102,7 @@ public class UseDevicePageActivity extends AppCompatActivity
                     BluetoothDevice mDevice = mScanDevice.get(DeviceAddress);
                     if (device.getName().indexOf(BLUETOOTH_DEVICE_NAME) > -1 && mDevice == null) {  //以名稱限制搜尋欄牙
                         mScanDevice.put(DeviceAddress, device);
+                        Logger.i(TAG, device.getAddress());
                     }
                 }
             });
@@ -286,6 +287,7 @@ public class UseDevicePageActivity extends AppCompatActivity
             if (mDeviceListArray.size() > 0 && mScanDeviceFind == true) {
                 for (DeviceList mDeviceList : mDeviceListArray) {
                     String DeviceAddress = mDeviceList.getDeviceAddress().toString();
+                    Logger.i(TAG, "scanLeDevice = " + DeviceAddress);
                     BluetoothDevice mDevice = mScanDevice.get(DeviceAddress);
                     Boolean DeviceReady = false;
                     if (mDevice != null)
@@ -296,9 +298,8 @@ public class UseDevicePageActivity extends AppCompatActivity
 
                 mLeDeviceListAdapter.notifyDataSetChanged();
                 mScanDevice.clear();
-            }
-            if (mScanDeviceFind == true)
                 scanLeDevice(true);
+            }
         }
     }
 
@@ -439,6 +440,7 @@ public class UseDevicePageActivity extends AppCompatActivity
     public void onResume() {
         Logger.i(TAG, "UseDevice onResume");
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
+        mLeDeviceListAdapter.notifyDataSetChanged();
 
         if (checkBluetoothStatus()) {
             mScanDeviceFind = true;

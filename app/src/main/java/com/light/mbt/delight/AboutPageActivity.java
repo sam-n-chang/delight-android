@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -28,7 +27,7 @@ public class AboutPageActivity extends AppCompatActivity {
             PackageInfo info = manager.getPackageInfo(this.getPackageName(), 0);
             String appVersion = info.versionName; //版本名
             int appVersionCode = info.versionCode; //版本名
-            Log.i(TAG, appVersion + "_" + appVersionCode);
+            Logger.i(TAG, appVersion + "_" + appVersionCode);
             delight_version.setText(getResources().getString(R.string.app_name) + " " + appVersion);
         } catch (PackageManager.NameNotFoundException e) {
             // TODO Auto-generated catch block

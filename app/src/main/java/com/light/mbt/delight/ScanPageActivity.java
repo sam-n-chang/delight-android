@@ -248,7 +248,6 @@ public class ScanPageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_scan_main);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);  //增加左上角返回圖示
-        //getActionBar().setTitle(R.string.title_devices);  //設定ActionBar 標題
 
         mHandler = new Handler();
 
@@ -348,8 +347,8 @@ public class ScanPageActivity extends AppCompatActivity {
                     final BluetoothDevice device = mLeScanDeviceListAdapter
                             .getDevice(position);
                     if (device != null) {
-                        connectDevice(device, true);
                         scanLeDevice(false);
+                        connectDevice(device, true);
                     }
                 }
             }
@@ -417,6 +416,7 @@ public class ScanPageActivity extends AppCompatActivity {
         deviceList.setDeviceAddress(mDeviceAddress);
 
         Utils.setDeviceListArraySharedPreference(ScanPageActivity.this, "DEVICE_LIST", deviceList, false);  //儲存新加入裝置
+        UseDevicePageActivity.mDeviceListArray.add(deviceList);
         UseDevicePageActivity.mLeDeviceListAdapter.addDevice(deviceList);   //新加入裝置更新
 
         return deviceList;
