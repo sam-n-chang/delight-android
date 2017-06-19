@@ -18,7 +18,22 @@
 
         <!-- Content -->
 
-        <include layout="@layout/content_use_device_main"/>
+        <TextView
+            android:id="@+id/editText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:padding="10dp"
+            android:text="@string/use_device_add_message"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            />
+
+        <include
+            android:id="@+id/include_usedevice"
+            layout="@layout/content_use_device_main"
+            />
 
         <!-- Drawer -->
         <android.support.design.widget.NavigationView
@@ -29,4 +44,5 @@
             app:headerLayout="@layout/nav_header_home_main"
             app:menu="@menu/activity_home_main_drawer"/>
     </android.support.v4.widget.DrawerLayout>
+
 </LinearLayout>

@@ -69,9 +69,10 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="62dp"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_weight="0.03">
 
         <Button
             android:id="@+id/btn_pair"
@@ -83,9 +84,21 @@
             android:paddingStart="10dp"
             android:text="Not Paired"
             android:textColor="@color/white"
-            android:textSize="15sp"/>
+            android:textSize="8sp"
+            android:visibility="gone"/>
 
         <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:padding="10dp"
+            android:textColor="@color/main_bg_color"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -94,5 +107,6 @@
             android:text="dBm"
             android:textColor="@color/main_bg_color"
             android:textSize="20sp"/>
+
     </LinearLayout>
 </LinearLayout>

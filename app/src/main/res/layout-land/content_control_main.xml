@@ -36,7 +36,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="@dimen/y46"
+                android:layout_marginTop="16dp"
                 android:adjustViewBounds="false"
                 android:background="@drawable/mybutton"
                 android:cropToPadding="false"
@@ -109,8 +109,7 @@
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_marginBottom="32dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="onTimer"
@@ -119,17 +118,15 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/img_btn_hourglass_on_off"
-                app:layout_constraintVertical_bias="0.833"/>
+                app:layout_constraintVertical_bias="0.0"/>
 
             <ImageButton
                 android:id="@+id/PlayButton"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_marginBottom="32dp"
-                android:layout_marginEnd="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
-                android:layout_marginStart="8dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="StartCountDownTimer"
@@ -139,15 +136,14 @@
                 app:layout_constraintRight_toLeftOf="@+id/StopButton"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/img_btn_play_on_off"
-                app:layout_constraintVertical_bias="0.833"/>
+                app:layout_constraintVertical_bias="0.0"/>
 
             <ImageButton
                 android:id="@+id/StopButton"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_marginBottom="32dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginRight="21dp"
+                android:layout_marginRight="8dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/mybutton"
                 android:onClick="StopCountDownTimer"
@@ -156,7 +152,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/img_btn_stop_on_off"
-                app:layout_constraintVertical_bias="0.666"/>
+                app:layout_constraintVertical_bias="0.0"/>
 
             <FrameLayout
                 android:id="@+id/frameLayout2"

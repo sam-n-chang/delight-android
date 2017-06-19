@@ -39,7 +39,7 @@ import java.util.TimerTask;
 public class ScanPageActivity extends AppCompatActivity {
 
     private final static String TAG = " Delight / " + ScanPageActivity.class.getSimpleName();
-    private static final String BLUETOOTH_DEVICE_NAME = "Delight";  //限制搜尋欄牙的名稱
+    private static final String BLUETOOTH_DEVICE_NAME = "Delight";  //限制搜尋藍牙的名稱
 
     private Handler mHandler;
 
@@ -329,6 +329,7 @@ public class ScanPageActivity extends AppCompatActivity {
                             mSearchEnabled = false;
                             mRefreshText.setText(getResources().getString(
                                     R.string.profile_control_device_scanning));
+                            findViewById(R.id.device_nofound).setVisibility(View.GONE);   //Device Not Founf 顯示
                         }
 
                     }
@@ -654,6 +655,20 @@ public class ScanPageActivity extends AppCompatActivity {
                                 R.string.profile_control_no_device_message));
                     }
                 });
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mLeScanDeviceListAdapter.getCount() > 0) {
+                            Toast.makeText(ScanPageActivity.this,
+                                    getResources().getString(R.string.device_add_message),
+                                    Toast.LENGTH_SHORT).show();
+                        }else{
+                            findViewById(R.id.device_nofound).setVisibility(View.VISIBLE);   //Device Not Founf 顯示
+                        }
+                    }
+                });
+
                 mSwipeLayout.setRefreshing(false);
                 scanLeDevice(false);
             }

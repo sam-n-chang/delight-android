@@ -24,6 +24,16 @@
             android:textStyle="bold"/>
 
 
+        <TextView
+            android:id="@+id/device_nofound"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:text="No Device Found"
+            android:textAlignment="center"
+            android:textSize="36sp"
+            android:visibility="gone"/>
+
         <ListView
             android:id="@+id/listView_profiles"
             android:layout_width="match_parent"

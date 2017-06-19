@@ -48,7 +48,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private final static String TAG = " Delight / " + UseDevicePageActivity.class.getSimpleName();
-    private static final String BLUETOOTH_DEVICE_NAME = "Delight";  //限制搜尋欄牙的名稱
+    private static final String BLUETOOTH_DEVICE_NAME = "Delight";  //限制搜尋藍牙的名稱
     //Delay Time out
     private static final long DELAY_PERIOD = 500;
     // Connection time out after 10 seconds.
@@ -100,7 +100,7 @@ public class UseDevicePageActivity extends AppCompatActivity
                 public void run() {
                     String DeviceAddress = device.getAddress().toString();
                     BluetoothDevice mDevice = mScanDevice.get(DeviceAddress);
-                    if (device.getName().indexOf(BLUETOOTH_DEVICE_NAME) > -1 && mDevice == null) {  //以名稱限制搜尋欄牙
+                    if (device.getName().indexOf(BLUETOOTH_DEVICE_NAME) > -1 && mDevice == null) {  //以名稱限制搜尋藍牙
                         mScanDevice.put(DeviceAddress, device);
                         Logger.i(TAG, device.getAddress());
                     }
@@ -206,6 +206,8 @@ public class UseDevicePageActivity extends AppCompatActivity
             for (DeviceList mDeviceList : mDeviceListArray) {
                 mLeDeviceListAdapter.addDevice(mDeviceList);
             }
+        }else{
+           findViewById(R.id.include_usedevice).setVisibility(View.GONE);   //Device List 隱藏
         }
 
         Intent gattServiceIntent = new Intent(getApplicationContext(),
@@ -440,7 +442,10 @@ public class UseDevicePageActivity extends AppCompatActivity
     public void onResume() {
         Logger.i(TAG, "UseDevice onResume");
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
-        mLeDeviceListAdapter.notifyDataSetChanged();
+        if(mLeDeviceListAdapter.getCount() > 0) {
+            findViewById(R.id.include_usedevice).setVisibility(View.VISIBLE);   //Device List 顯示
+            mLeDeviceListAdapter.notifyDataSetChanged();
+        }
 
         if (checkBluetoothStatus()) {
             mScanDeviceFind = true;
@@ -547,6 +552,9 @@ public class UseDevicePageActivity extends AppCompatActivity
                 int SelectItem = mLeDeviceListAdapter.getSelectedItem();
                 mLeDeviceListAdapter.removeDevice(SelectItem);
                 ResetDeviceListSelectItem();
+                if(mLeDeviceListAdapter.getCount() == 0)
+                    findViewById(R.id.include_usedevice).setVisibility(View.GONE);   //Device List 顯示
+
                 initDrawer();
                 return true;
             case android.R.id.home:
