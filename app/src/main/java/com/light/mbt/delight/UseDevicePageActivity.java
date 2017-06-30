@@ -52,9 +52,9 @@ public class UseDevicePageActivity extends AppCompatActivity
     //Delay Time out
     private static final long DELAY_PERIOD = 500;
     // Connection time out after 10 seconds.
-    private static final long CONNECTION_TIMEOUT = 10000;
+    private static final long CONNECTION_TIMEOUT = 5000;
     // Stops scanning after 2 seconds.
-    private static final long SCAN_PERIOD_TIMEOUT = 2000;
+    private static final long SCAN_PERIOD_TIMEOUT = 1000;
     // Activity request constant
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -85,6 +85,9 @@ public class UseDevicePageActivity extends AppCompatActivity
     //Bluetooth adapter
     private static BluetoothAdapter mBluetoothAdapter;
 
+    private boolean stopSerivce = false;
+    public static boolean gotoControlPage = false;
+
     /**
      * Call back for BLE Scan
      * This call back is called when a BLE device is found near by.
@@ -102,7 +105,7 @@ public class UseDevicePageActivity extends AppCompatActivity
                     BluetoothDevice mDevice = mScanDevice.get(DeviceAddress);
                     if (device.getName().indexOf(BLUETOOTH_DEVICE_NAME) > -1 && mDevice == null) {  //以名稱限制搜尋藍牙
                         mScanDevice.put(DeviceAddress, device);
-                        Logger.i(TAG, device.getAddress());
+                        //Logger.i(TAG, device.getAddress());
                     }
                 }
             });
@@ -124,8 +127,11 @@ public class UseDevicePageActivity extends AppCompatActivity
                 if (mConnectTimer != null)
                     mConnectTimer.cancel();
                 mConnectTimerON = false;
-                gotoControlActivity();
+
+                if (BluetoothLeService.getConnectionState() == 2)
+                   gotoControlActivity();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                Logger.i(TAG, "BLUETOOTH GATT DISCONNECTED");
                 /**
                  * Disconnect event.When the connect timer is ON,Reconnect the device
                  * else show disconnect message
@@ -136,6 +142,7 @@ public class UseDevicePageActivity extends AppCompatActivity
                     Toast.makeText(UseDevicePageActivity.this,
                             getResources().getString(R.string.alert_message_bluetooth_disconnect),
                             Toast.LENGTH_SHORT).show();
+                    Logger.i(TAG, "The BLE device is disconnected 1");
                 }
             }
 
@@ -210,6 +217,11 @@ public class UseDevicePageActivity extends AppCompatActivity
            findViewById(R.id.include_usedevice).setVisibility(View.GONE);   //Device List 隱藏
         }
 
+        // Set the Clear cahce on disconnect as true by devfault
+        if (!Utils.ifContainsSharedPreference(this, "PREF_PAIR_CACHE_STATUS")) {
+            Utils.setBooleanSharedPreference(this, "PREF_PAIR_CACHE_STATUS", true);
+        }
+
         Intent gattServiceIntent = new Intent(getApplicationContext(),
                 BluetoothLeService.class);
         startService(gattServiceIntent);
@@ -280,16 +292,16 @@ public class UseDevicePageActivity extends AppCompatActivity
                 startScanTimer();
                 mScanning = true;
                 mBluetoothAdapter.startLeScan(mLeScanCallback);
-                Logger.i(TAG, "scanLeDevice = " + enable);
+                //Logger.i(TAG, "scanLeDevice = " + enable);
             }
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            Logger.i(TAG, "scanLeDevice = " + enable);
+            //Logger.i(TAG, "scanLeDevice = " + enable);
             if (mDeviceListArray.size() > 0 && mScanDeviceFind == true) {
                 for (DeviceList mDeviceList : mDeviceListArray) {
                     String DeviceAddress = mDeviceList.getDeviceAddress().toString();
-                    Logger.i(TAG, "scanLeDevice = " + DeviceAddress);
+                    //Logger.i(TAG, "scanLeDevice = " + DeviceAddress);
                     BluetoothDevice mDevice = mScanDevice.get(DeviceAddress);
                     Boolean DeviceReady = false;
                     if (mDevice != null)
@@ -384,7 +396,6 @@ public class UseDevicePageActivity extends AppCompatActivity
     }
 
     private void gotoControlActivity() {
-
         final Intent intent = new Intent(this, ControlPageActivity.class);
         intent.putExtra(ControlPageActivity.EXTRAS_DEVICE_NAME, mDeviceName);
         intent.putExtra(ControlPageActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress);
@@ -395,6 +406,7 @@ public class UseDevicePageActivity extends AppCompatActivity
         overridePendingTransition(R.anim.slide_right, R.anim.push_right);
         startActivity(intent);
         overridePendingTransition(R.anim.slide_left, R.anim.push_left);
+        gotoControlPage = true;
     }
 
     /**
@@ -409,14 +421,19 @@ public class UseDevicePageActivity extends AppCompatActivity
                 Logger.v(TAG, "CONNECTION TIME OUT");
                 mConnectTimerON = false;
                 BluetoothLeService.disconnect();
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(UseDevicePageActivity.this,
                                 getResources().getString(R.string.profile_cannot_connect_message),
                                 Toast.LENGTH_SHORT).show();
-                    }
+
+                                mScanDeviceFind = true;
+                                scanLeDevice(true);
+                   }
                 });
+
             }
         }, CONNECTION_TIMEOUT);
     }
@@ -442,6 +459,17 @@ public class UseDevicePageActivity extends AppCompatActivity
     public void onResume() {
         Logger.i(TAG, "UseDevice onResume");
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
+        if (BluetoothLeService.getConnectionState() == 2 ||
+                BluetoothLeService.getConnectionState() == 1 ||
+                BluetoothLeService.getConnectionState() == 4) {
+            BluetoothLeService.disconnect();
+
+            Toast.makeText(this,
+                    getResources().getString(R.string.alert_message_bluetooth_disconnect),
+                    Toast.LENGTH_SHORT).show();
+            Logger.i(TAG, "The BLE device is disconnected 2");
+        }
+
         if(mLeDeviceListAdapter.getCount() > 0) {
             findViewById(R.id.include_usedevice).setVisibility(View.VISIBLE);   //Device List 顯示
             mLeDeviceListAdapter.notifyDataSetChanged();
@@ -453,6 +481,15 @@ public class UseDevicePageActivity extends AppCompatActivity
         }
 
         BLUETOOTH_STATUS_FLAG = true;
+
+        if(stopSerivce == true) {
+            Intent gattServiceIntent = new Intent(getApplicationContext(),
+                    BluetoothLeService.class);
+            startService(gattServiceIntent);
+            stopSerivce = false;
+            Logger.i(TAG, "startService");
+        }
+
         Logger.i(TAG, "Registering receiver in Profile scannng");
         registerReceiver(mGattConnectReceiver,
                 Utils.makeGattUpdateIntentFilter());
@@ -473,10 +510,13 @@ public class UseDevicePageActivity extends AppCompatActivity
         scanLeDevice(false);
         mScanDeviceFind = false;
 
-        Intent gattServiceIntent = new Intent(getApplicationContext(),
-                BluetoothLeService.class);
-        stopService(gattServiceIntent);
-        Logger.i(TAG, "stopService");
+        if(gotoControlPage == false) {
+            Intent gattServiceIntent = new Intent(getApplicationContext(),
+                    BluetoothLeService.class);
+            stopService(gattServiceIntent);
+            stopSerivce = true;
+            Logger.i(TAG, "stopService");
+        }
 
         super.onPause();
     }

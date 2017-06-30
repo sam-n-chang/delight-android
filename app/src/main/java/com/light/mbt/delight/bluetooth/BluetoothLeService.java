@@ -137,7 +137,7 @@ public class BluetoothLeService extends Service {
             Logger.i(TAG, "onConnectionStateChange");
             String intentAction;
             // GATT Server connected
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
                 synchronized (mGattCallback) {
                     mConnectionState = STATE_CONNECTED;
@@ -148,7 +148,7 @@ public class BluetoothLeService extends Service {
                 Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             }
             // GATT Server disconnected
-            else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 synchronized (mGattCallback) {
                     mConnectionState = STATE_DISCONNECTED;
@@ -158,7 +158,7 @@ public class BluetoothLeService extends Service {
             }
 
             // GATT Server Connecting
-            if (newState == BluetoothProfile.STATE_CONNECTING) {
+            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTING) {
                 intentAction = ACTION_GATT_CONNECTING;
                 synchronized (mGattCallback) {
                     mConnectionState = STATE_CONNECTING;
@@ -169,7 +169,7 @@ public class BluetoothLeService extends Service {
                 Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
             }
             // GATT Server disconnecting
-            else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
+            else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_DISCONNECTING) {
                 intentAction = ACTION_GATT_DISCONNECTING;
                 synchronized (mGattCallback) {
                     mConnectionState = STATE_DISCONNECTING;

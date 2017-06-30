@@ -27,6 +27,7 @@ public class LeUseDeviceListAdapter extends BaseAdapter {
    // public List<DeviceList> DeviceList;
     public HashMap<String, DeviceList> mDeviceList = new HashMap<String, DeviceList>();
     public HashMap<String, Boolean> DeviceReady = new HashMap<String, Boolean>();
+    public HashMap<String, Integer> DeviceReadyCount = new HashMap<String, Integer>();
     private List<DeviceList> memDeviceList;
     public Button mEditButton;
     private int selectedItem = -1;
@@ -76,7 +77,20 @@ public class LeUseDeviceListAdapter extends BaseAdapter {
     }
 
     public void setDeviceReadyItem(String Address, Boolean deviceReadItem) {
-        DeviceReady.put(Address, deviceReadItem);
+        if (deviceReadItem == false){
+            if(DeviceReadyCount.get(Address) == null) {
+                DeviceReadyCount.put(Address, 1);
+             }else {
+                DeviceReadyCount.put(Address, DeviceReadyCount.get(Address) + 1);
+            }
+
+            if(DeviceReadyCount.get(Address) >= 5) {
+                DeviceReady.put(Address, deviceReadItem);
+                DeviceReadyCount.put(Address, 0);
+            }
+        }else {
+            DeviceReady.put(Address, deviceReadItem);
+        }
     }
 
     public boolean getDeviceReadyItem(String Address) {

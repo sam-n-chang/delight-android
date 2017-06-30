@@ -5,6 +5,8 @@
 
     <string name="device_add_message">Please touch item to add device</string>
     <string name="use_device_add_message">Please Add Device ↗</string>
+    <string name="noservice_message">No Service，Please touch screen Re-acquired Services</string>
+
 
     <!-- Navigation drawer elements -->
     <string name="title_devices">BLE Device Scan</string>
