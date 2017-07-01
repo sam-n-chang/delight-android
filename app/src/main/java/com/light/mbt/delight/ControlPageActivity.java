@@ -11,15 +11,25 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -34,6 +44,7 @@ import com.light.mbt.delight.CommonUtils.Utils;
 import com.light.mbt.delight.ListAdapters.DeviceList;
 import com.light.mbt.delight.ListAdapters.NumberAdapter;
 import com.light.mbt.delight.bluetooth.BluetoothLeService;
+import com.light.mbt.delight.widget.EditTextView;
 import com.light.mbt.delight.widget.TosAdapterView;
 import com.light.mbt.delight.widget.WheelTextView;
 import com.light.mbt.delight.widget.WheelView;
@@ -43,7 +54,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.light.mbt.delight.ListAdapters.NumberAdapter.normalColor;
-import static com.light.mbt.delight.ListAdapters.NumberAdapter.selectedColor;
+import static com.light.mbt.delight.R.id.MinsEdit;
 import static com.light.mbt.delight.R.id.seekBar;
 import static com.light.mbt.delight.UseDevicePageActivity.mLeDeviceListAdapter;
 import static com.light.mbt.delight.widget.WheelTextView.hoursArray;
@@ -52,6 +63,7 @@ import static com.light.mbt.delight.widget.WheelTextView.minsecsArray;
 public class ControlPageActivity extends AppCompatActivity {
     private final static String TAG = " Delight / " + ControlPageActivity.class.getSimpleName();
 
+    // Application
     private NumberAdapter hourAdapter, minAdapter, secAdapter;
     private WheelView mHours = null, mMins = null, mSecs = null;
     private View mDecorView = null;
@@ -59,11 +71,9 @@ public class ControlPageActivity extends AppCompatActivity {
     private ImageView mImageView1 = null, mImageView2 = null;
     private ImageButton powerButton, timerButton, playButton, stopButton;
     private AlertDialog mAlert;
-
-    // Application
     private ProgressDialog mProgressDialog;
     private Timer mTimer;
-    private TextView mNoserviceDiscovered;
+    private EditTextView mHoursEdit, mMinsEdit, mSecsEdit;
     private MenuItem Device_Info;
 
     private static final long DELAY_PERIOD = 500;
@@ -85,11 +95,12 @@ public class ControlPageActivity extends AppCompatActivity {
     private long SaveTime = 0, timer_unit = 1000, countDownTimer = 0;
     private boolean BLUETOOTH_STATUS_FLAG = true;
     private boolean BLUETOOTH_STATUS_FLAG2 = false;
+    private boolean ItemSelectChange = false, changeFocus = false;
+    private int currSelectItem = 0;
 
     private DeviceList mDeviceList = null;
     private int countDownTimerStatus = CountDownTimerUtil.PREPARE;
     private Handler handler;
-    private int reconnectCount = 0;
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -132,27 +143,26 @@ public class ControlPageActivity extends AppCompatActivity {
                 if (mTimer != null)
                     mTimer.cancel();
 
-                if (mConnected == true)
+                if (mConnected)
                     PowerOff(false);
 
                 mConnected = false;
                 invalidateOptionsMenu();
-                if (BLUETOOTH_STATUS_FLAG2 == false)
+                if (!BLUETOOTH_STATUS_FLAG2)
                     gotoUseDeviceActivity();
                 //showNoServiceDiscoverAlert();
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 Logger.i(TAG, "Service discovered");
                 mConnected = true;
-                reconnectCount = 0;
 
-                 Device_Info.setEnabled(true);
+                Device_Info.setEnabled(true);
 
                 if (mTimer != null)
                     mTimer.cancel();
 
                 // Show all the supported services and characteristics on the user interface.
                 getGattServices(BluetoothLeService.getSupportedGattServices());
-                if(mReadCharacteristic != null) {
+                if (mReadCharacteristic != null) {
                     stopBroadcastDataNotify(mReadCharacteristic);
                     prepareBroadcastDataRead(mReadCharacteristic);
                     prepareBroadcastDataNotify(mReadCharacteristic);
@@ -182,6 +192,7 @@ public class ControlPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.i(TAG, "Control onCreate");
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         setContentView(R.layout.content_control_main);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);  //增加左上角返回圖示
@@ -228,21 +239,21 @@ public class ControlPageActivity extends AppCompatActivity {
 
         setContentView(R.layout.content_control_main);
 
-        if(mConnected == false)
+        if (!mConnected)
             findViewById(R.id.noservice).setVisibility(View.VISIBLE);
 
         initializeControl();
 
-        if (mPowerStatus == true) {
+        if (mPowerStatus) {
             mOrientation = true;
             PowerOn(true);
             mSeekBar.setProgress(mINTENSITY & 0xff);   //byte to int
             Logger.i(TAG, "mINTENSITY = " + String.valueOf(mINTENSITY & 0xff));
 
-            if (mTimerStatus == true) {
+            if (mTimerStatus) {
                 TimeOpen();
 
-                if (mTimerStart == true)
+                if (mTimerStart)
                     formateTimer(countDownTimer);
 
                 switch (countDownTimerStatus) {
@@ -291,7 +302,7 @@ public class ControlPageActivity extends AppCompatActivity {
         unregisterReceiver(mGattUpdateReceiver);
         unregisterReceiver(DeviceInformationService.mGattUpdateReceiver);
 
-        if (mTimerStart == true)
+        if (mTimerStart)
             mTimerStart = false;
 
         SaveDeviceData();
@@ -343,7 +354,7 @@ public class ControlPageActivity extends AppCompatActivity {
         menu.findItem(R.id.action_edit).setVisible(false);
         menu.findItem(R.id.action_del).setVisible(false);
         menu.findItem(R.id.action_add).setVisible(false);
-        Device_Info =  menu.findItem(R.id.action_info);
+        Device_Info = menu.findItem(R.id.action_info);
         Device_Info.setEnabled(false);
 
         return true;
@@ -385,6 +396,7 @@ public class ControlPageActivity extends AppCompatActivity {
         stopButton.setAlpha(0.5f);
 
         initializeWheel(false);  //初始化
+
         SaveTime = getSaveTime();    //取得記錄時間
         if (SaveTime != 0) {
             setToBluetoothTime(SaveTime);
@@ -443,13 +455,13 @@ public class ControlPageActivity extends AppCompatActivity {
 
         TimesWheelisEnable(isEnable);
 
-        mHours.setSelection(6, true);
-        mMins.setSelection(30, true);
-        mSecs.setSelection(30, true);
+        mHours.setSelection(0, true);
+        mMins.setSelection(0, true);
+        mSecs.setSelection(0, true);
 
-        ((WheelTextView) mHours.getSelectedView()).setTextSize(30);
-        ((WheelTextView) mMins.getSelectedView()).setTextSize(30);
-        ((WheelTextView) mSecs.getSelectedView()).setTextSize(30);
+        ((WheelTextView) mHours.getSelectedView()).setTextSize(25);
+        ((WheelTextView) mMins.getSelectedView()).setTextSize(25);
+        ((WheelTextView) mSecs.getSelectedView()).setTextSize(25);
 
         mHours.setUnselectedAlpha(0.5f);
         mMins.setUnselectedAlpha(0.5f);
@@ -458,6 +470,39 @@ public class ControlPageActivity extends AppCompatActivity {
         mHours.setOnItemSelectedListener(mListener);
         mMins.setOnItemSelectedListener(mListener);
         mSecs.setOnItemSelectedListener(mListener);
+
+        mHours.setOnItemClickListener(mOnClickListener);
+        mMins.setOnItemClickListener(mOnClickListener);
+        mSecs.setOnItemClickListener(mOnClickListener);
+
+        mHoursEdit = (EditTextView) findViewById(R.id.HoursEdit);
+        mMinsEdit = (EditTextView) findViewById(MinsEdit);
+        mSecsEdit = (EditTextView) findViewById(R.id.SecsEdit);
+
+        mHoursEdit.setOnFocusChangeListener(mOnFocusChangeListener);
+        mMinsEdit.setOnFocusChangeListener(mOnFocusChangeListener);
+        mSecsEdit.setOnFocusChangeListener(mOnFocusChangeListener);
+
+        mHoursEdit.setBackListener(mOnBackListener);
+        mMinsEdit.setBackListener(mOnBackListener);
+        mSecsEdit.setBackListener(mOnBackListener);
+
+        //mHoursEdit.setOnClickListener(mOnClick);
+        //mMinsEdit.setOnClickListener(mOnClick);
+        //mSecsEdit.setOnClickListener(mOnClick);
+
+        mHoursEdit.setOnTouchListener(mOnTouchListener);
+        mMinsEdit.setOnTouchListener(mOnTouchListener);
+        mSecsEdit.setOnTouchListener(mOnTouchListener);
+
+        //加入文字監聽
+        mHoursEdit.addTextChangedListener(mTextWatcher);
+        mMinsEdit.addTextChangedListener(mTextWatcher);
+        mSecsEdit.addTextChangedListener(mTextWatcher);
+
+        mHoursEdit.setOnEditorActionListener(mOnEditorActionListener);
+        mMinsEdit.setOnEditorActionListener(mOnEditorActionListener);
+        mSecsEdit.setOnEditorActionListener(mOnEditorActionListener);
 
         //mDecorView = getWindow().getDecorView();
         initWheel = false;
@@ -469,37 +514,252 @@ public class ControlPageActivity extends AppCompatActivity {
         mSecs.setEnable(isEnable);
     }
 
-    private TosAdapterView.OnItemSelectedListener mListener = new TosAdapterView.OnItemSelectedListener() {
+    private EditText.OnClickListener mOnClick = new EditText.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == mHoursEdit.getId()) {
+                Logger.i(TAG, "mHoursEdit onClick = " + v.getId() + "_" + mHoursEdit.getId());
+            } else if (v.getId() == mMinsEdit.getId()) {
+                Logger.i(TAG, "mMinsEdit onClick = " + v.getId() + "_" + mMinsEdit.getId());
+            } else if (v.getId() == mSecsEdit.getId()) {
+                Logger.i(TAG, "mSecsEdit onClick = " + v.getId() + "_" + mSecsEdit.getId());
+            }
+        }
+    };
+
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        private String memChar[] = {"", "", ""};
 
         @Override
+        public void afterTextChanged(Editable s) {
+            Logger.i(TAG, "afterTextChanged = " + s.toString());
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            Logger.i(TAG, "beforeTextChanged = " + s.toString() + "_" + start + "_" + count + "_" + after);
+            if (mHoursEdit.hasFocus()) {
+                Logger.i(TAG, "mHoursEdit beforeTextChanged mHoursEdit hasFocus");
+                memChar[0] = s.toString();
+            }
+            if (mMinsEdit.hasFocus()) {
+                Logger.i(TAG, "mMinsEdit beforeTextChanged mMinsEdit hasFocus");
+                memChar[1] = s.toString();
+            }
+            if (mSecsEdit.hasFocus()) {
+                Logger.i(TAG, "mSecsEdit beforeTextChanged mSecsEdit hasFocus");
+                memChar[2] = s.toString();
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Logger.i(TAG, "onTextChanged = " + s.toString() + "_" + start + "_" + before + "_" + count);
+            if (mHoursEdit.hasFocus()) {
+                Logger.i(TAG, "mHoursEdit onTextChanged mHoursEdit hasFocus");
+                int len = mHoursEdit.getText().toString().length();
+                if (len > 1) {
+                    if ((Integer.parseInt(mHoursEdit.getText().toString()) > 12)) {
+                        mHoursEdit.setText(memChar[0]);
+                        mHoursEdit.setSelection(1);
+                    }
+                }
+            } else if (mMinsEdit.hasFocus()) {
+                Logger.i(TAG, "mMinsEdit onTextChanged mMinsEdit hasFocus");
+                int len = mMinsEdit.getText().toString().length();
+                if (len > 1) {
+                    if ((Integer.parseInt(mMinsEdit.getText().toString()) > 59)) {
+                        mMinsEdit.setText(memChar[1]);
+                        mMinsEdit.setSelection(1);
+                    }
+                }
+            } else if (mSecsEdit.hasFocus()) {
+                Logger.i(TAG, "mSecsEdit onTextChanged mSecsEdit hasFocus");
+                int len = mSecsEdit.getText().toString().length();
+                if (len > 1) {
+                    if ((Integer.parseInt(mSecsEdit.getText().toString()) > 59)) {
+                        mSecsEdit.setText(memChar[2]);
+                        mSecsEdit.setSelection(1);
+                    }
+                }
+            }
+        }
+    };
+
+    private EditTextView.BackListener mOnBackListener = new EditTextView.BackListener() {
+        @Override
+        public void back(TextView textView) {
+            Logger.i(TAG, "back = " + textView.getId() + "_" + mHoursEdit.getId());
+            delayCleanTextView();
+        }
+    };
+
+    private EditText.OnFocusChangeListener mOnFocusChangeListener = new EditText.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            Logger.i(TAG, "onFocusChange = " + v.getId() + " / hasFocus =" + hasFocus);
+            if (!hasFocus && !changeFocus) {
+                if (v.getId() == mHoursEdit.getId()) {
+                    Logger.i(TAG, "mHoursEdit onFocusChange = " + v.getId() + "_" + mHoursEdit.getId());
+                    ((WheelTextView) mHours.getSelectedView()).setText(String.format("%02d", mHours.getSelectedItemPosition()));
+                    mHoursEdit.setVisibility(View.INVISIBLE);
+                    if (!mHoursEdit.getText().toString().equals(""))
+                        mHours.setSelection(Integer.parseInt(mHoursEdit.getText().toString()), true);
+                } else if (v.getId() == mMinsEdit.getId()) {
+                    Logger.i(TAG, "mMinsEdit onFocusChange = " + v.getId() + "_" + mMinsEdit.getId());
+                    mMinsEdit.setVisibility(View.INVISIBLE);
+                    ((WheelTextView) mMins.getSelectedView()).setText(String.format("%02d", mMins.getSelectedItemPosition()));
+                    if (!mMinsEdit.getText().toString().equals(""))
+                        mMins.setSelection(Integer.parseInt(mMinsEdit.getText().toString()), true);
+                } else if (v.getId() == mSecsEdit.getId()) {
+                    Logger.i(TAG, "mSecsEdit onFocusChange = " + v.getId() + "_" + mSecsEdit.getId());
+                    ((WheelTextView) mSecs.getSelectedView()).setText(String.format("%02d", mSecs.getSelectedItemPosition()));
+                    mSecsEdit.setVisibility(View.INVISIBLE);
+                    if (!mSecsEdit.getText().toString().equals(""))
+                        mSecs.setSelection(Integer.parseInt(mSecsEdit.getText().toString()), true);
+                }
+            }
+        }
+    };
+
+    private EditText.OnEditorActionListener mOnEditorActionListener = new EditText.OnEditorActionListener() {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                if (v.getId() == mHoursEdit.getId()) {
+                    Logger.i(TAG, "mHoursEdit onEditorAction = " + v.getId() + "_" + mHoursEdit.getId());
+                    mHoursEdit.setVisibility(View.INVISIBLE);
+                    mMinsEdit.setVisibility(View.VISIBLE);
+                    WheelTextView mMinsView = (WheelTextView) mMins.getSelectedView();
+                    mMinsEdit.setText(mMinsView.getText());
+                    mMinsView.setText("");
+                    changeFocus = false;
+                    setEditFocus(mMinsEdit);
+                } else if (v.getId() == mMinsEdit.getId()) {
+                    Logger.i(TAG, "mMinsEdit onEditorAction = " + v.getId() + "_" + mMinsEdit.getId());
+                    mMinsEdit.setVisibility(View.INVISIBLE);
+                    mSecsEdit.setVisibility(View.VISIBLE);
+                    WheelTextView mSecsView = (WheelTextView) mSecs.getSelectedView();
+                    mSecsEdit.setText(mSecsView.getText());
+                    mSecsView.setText("");
+                    changeFocus = false;
+                    setEditFocus(mSecsEdit);
+                }
+                return true;
+            } else if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (v.getId() == mSecsEdit.getId()) {
+                    Logger.i(TAG, "mSecsEdit onEditorAction = " + v.getId() + "_" + mSecsEdit.getId());
+                    mSecsEdit.setVisibility(View.INVISIBLE);
+
+                    //hide soft keyboard
+                    hideInputMethod();
+                }
+                return true;
+            }
+            return false;
+        }
+    };
+
+    private EditText.OnTouchListener mOnTouchListener = new EditText.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                changeFocus = true;
+                mHours.setFocusable(true);
+                mHours.setFocusableInTouchMode(true);
+                mHours.requestFocus();
+                if (v.getId() == mHoursEdit.getId() && mHoursEdit.getVisibility() == View.VISIBLE) {
+                    Logger.i(TAG, "mHoursEdit onTouch = " + v.getId() + "_" + mHoursEdit.getId());
+                    setEditFocus(mHoursEdit);
+                } else if (v.getId() == mMinsEdit.getId() && mMinsEdit.getVisibility() == View.VISIBLE) {
+                    Logger.i(TAG, "mMinsEdit onTouch = " + v.getId() + "_" + mMinsEdit.getId());
+                    setEditFocus(mMinsEdit);
+                } else if (v.getId() == mSecsEdit.getId() && mSecsEdit.getVisibility() == View.VISIBLE) {
+                    Logger.i(TAG, "mSecsEdit onTouch = " + v.getId() + "_" + mSecsEdit.getId());
+                    setEditFocus(mSecsEdit);
+                }
+                changeFocus = false;
+                delayCleanTextView();
+            }
+            return false;
+        }
+    };
+
+    private TosAdapterView.OnItemClickListener mOnClickListener = new TosAdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(TosAdapterView<?> parent, View view, int position, long id) {
+            changeFocus = true;
+            currSelectItem = position;
+            Logger.i(TAG, "onItemClick position = " + position + "_" + parent.getId() + " / changeFocus = " + changeFocus);
+
+            if (!ItemSelectChange) {
+                if (parent.getId() == mHours.getId()) {
+                    Logger.i(TAG, "mHours onItemClick position = " + position + "_" + parent.getId() + "_" + mHours.getId());
+                    mHoursEdit.setVisibility(View.VISIBLE);
+                    WheelTextView mHoursView = (WheelTextView) mHours.getSelectedView();
+                    mHoursEdit.setText(mHoursView.getText());
+                    changeFocus = false;
+                    setEditFocus(mHoursEdit);
+                } else if (parent.getId() == mMins.getId()) {
+                    Logger.i(TAG, "mMins onItemClick position = " + position + "_" + parent.getId() + "_" + mMins.getId());
+                    mMinsEdit.setVisibility(View.VISIBLE);
+                    WheelTextView mMinsView = (WheelTextView) mMins.getSelectedView();
+                    mMinsEdit.setText(mMinsView.getText());
+                    changeFocus = false;
+                    setEditFocus(mMinsEdit);
+                } else if (parent.getId() == mSecs.getId()) {
+                    Logger.i(TAG, "mSecs onItemClick position = " + position + "_" + parent.getId() + "_" + mSecs.getId());
+                    mSecsEdit.setVisibility(View.VISIBLE);
+                    WheelTextView mSecsView = (WheelTextView) mSecs.getSelectedView();
+                    mSecsEdit.setText(mSecsView.getText());
+                    changeFocus = false;
+                    setEditFocus(mSecsEdit);
+                }
+                delayCleanTextView();
+            }
+            changeFocus = false;
+            ItemSelectChange = false;
+        }
+    };
+
+    private TosAdapterView.OnItemSelectedListener mListener = new TosAdapterView.OnItemSelectedListener() {
+        @Override
         public void onItemSelected(TosAdapterView<?> parent, View view, int position, long id) {
+            Logger.i(TAG, "onItemSelected position = " + position);
             boolean isEnabled = ((WheelView) parent).isEnable();
-            //Logger.i(TAG, "position = " + position);
+            ItemSelectChange = true;
+
+            if (((WheelTextView) view).getText().toString().equals(""))
+                ((WheelTextView) view).setText(String.format("%02d", position));
 
             ((WheelTextView) view).setTextSize(25);
             ((WheelTextView) view).setGravity(Gravity.CENTER);
 
-            if (isEnabled == true || mTimerStart == true)
-                ((WheelTextView) view).setTextColor(selectedColor);
-
             int index = Integer.parseInt(view.getTag().toString());
             int count = parent.getChildCount();
+            Logger.i(TAG, "onItemSelected position = " + index + "_" + count);
 
             if (index < count - 1) {
                 ((WheelTextView) parent.getChildAt(index + 1)).setTextSize(25);    //下方字體大小
-                if (isEnabled == true || mTimerStart == true)
+                if (isEnabled || mTimerStart)
                     ((WheelTextView) parent.getChildAt(index + 1)).setTextColor(normalColor);    //下方字體顏色
             }
 
             if (index > 0) {
                 ((WheelTextView) parent.getChildAt(index - 1)).setTextSize(25);    //上方字體大小
-                if (isEnabled == true || mTimerStart == true)
+                if (isEnabled || mTimerStart)
                     ((WheelTextView) parent.getChildAt(index - 1)).setTextColor(normalColor);    //上方字體顏色
             }
 
-            if (mTimerStatus == true && mTimerStart == false && initWheel == false) {
+            if (mTimerStatus && !mTimerStart && !initWheel) {
                 get_TotalTime();
             }
+
+            checkEditVisibility();
+
+            if (currSelectItem == position)
+                ItemSelectChange = false;
+
         }
 
         @Override
@@ -507,8 +767,90 @@ public class ControlPageActivity extends AppCompatActivity {
         }
     };
 
+    private void setEditFocus(EditText editText) {
+        editText.setFocusable(true);
+        editText.setFocusableInTouchMode(true);
+        editText.requestFocus();
+        editText.setSelectAllOnFocus(true);
+        editText.selectAll();
+        //show soft keyboard
+        showInputMethod();
+    }
+
+
+    /**
+     * 顯示鍵盤
+     */
+    protected void showInputMethod() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (null != imm) {
+            View v = getWindow().getDecorView();
+            if (!isKeyboardShown(v))
+                imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
+        }
+    }
+
+    /**
+     * 隱藏鍵盤
+     */
+    protected void hideInputMethod() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (null != imm) {
+            View v = getWindow().getDecorView();
+            if (isKeyboardShown(v))
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+    }
+
+    /**
+     * 檢查鍵盤是否顯示
+     */
+    private boolean isKeyboardShown(View rootView) {
+        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Logger.i(TAG, "landscape");
+        } else if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Logger.i(TAG, "portrait");
+        }
+        final int softKeyboardHeight = 100;
+        Rect r = new Rect();
+        rootView.getWindowVisibleDisplayFrame(r);
+        DisplayMetrics dm = rootView.getResources().getDisplayMetrics();
+        int heightDiff = rootView.getBottom() - r.bottom;
+        return heightDiff > softKeyboardHeight * dm.density;
+    }
+
+    private void delayCleanTextView() {
+        Handler delayHandler = new Handler();
+        delayHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mHoursEdit.hasFocus()) {
+                    ((WheelTextView) mHours.getSelectedView()).setText("");
+                } else if (mMinsEdit.hasFocus()) {
+                    ((WheelTextView) mMins.getSelectedView()).setText("");
+                } else if (mSecsEdit.hasFocus()) {
+                    ((WheelTextView) mSecs.getSelectedView()).setText("");
+                }
+            }
+        }, 300);
+    }
+
+    private void checkEditVisibility() {
+        if (mHoursEdit.getVisibility() == View.VISIBLE || mMinsEdit.getVisibility() == View.VISIBLE ||
+                mSecsEdit.getVisibility() == View.VISIBLE)
+            hideInputMethod();
+
+        if (mHoursEdit.getVisibility() == View.VISIBLE) {
+            mHoursEdit.setVisibility(View.INVISIBLE);
+        } else if (mMinsEdit.getVisibility() == View.VISIBLE) {
+            mMinsEdit.setVisibility(View.INVISIBLE);
+        } else if (mSecsEdit.getVisibility() == View.VISIBLE) {
+            mSecsEdit.setVisibility(View.INVISIBLE);
+        }
+    }
+
     public void onPower(View view) {
-        if (mPowerStatus == false) {
+        if (!mPowerStatus) {
             PowerOn(true);
             mPower = 0;
             SendData();
@@ -518,7 +860,7 @@ public class ControlPageActivity extends AppCompatActivity {
     }
 
     private void PowerOn(boolean isEnable) {
-        if (mLAMP_Timer != 1 && mLAMP_Timer != 2 && isEnable == true && mOrientation == false) {
+        if (mLAMP_Timer != 1 && mLAMP_Timer != 2 && isEnable && !mOrientation) {
             mINTENSITY = (byte) 255;
             mSeekBar.setProgress(mINTENSITY & 0xff);   //byte to int
         }
@@ -536,14 +878,14 @@ public class ControlPageActivity extends AppCompatActivity {
     private void PowerOff(boolean sendData) {
         PowerOffUIUpdate();
 
-        if (sendData == true)
+        if (sendData)
             SendData();
     }
 
     void PowerOffUIUpdate() {
         mINTENSITY = 0;
         mPower = 1;
-        if (mTimerStart == true) //關閉電源時，如果計時器有動作則關閉
+        if (mTimerStart) //關閉電源時，如果計時器有動作則關閉
             mLAMP_Timer = 3;
         else
             mLAMP_Timer = 0;
@@ -560,7 +902,7 @@ public class ControlPageActivity extends AppCompatActivity {
     }
 
     public void onTimer(View view) {
-        if (mTimerStatus == false) {
+        if (!mTimerStatus) {
             TimeOpen();
         } else {
             TimeClose();
@@ -582,7 +924,7 @@ public class ControlPageActivity extends AppCompatActivity {
     }
 
     private void TimeClose() {
-        if (mTimerStart == true) {
+        if (mTimerStart) {
             mLAMP_Timer = 3;
             SendData();
         }
@@ -614,7 +956,7 @@ public class ControlPageActivity extends AppCompatActivity {
         int pos3 = mSecs.getSelectedItemPosition();
 
         long All_Total_Times = ((pos1 * 3600) + (pos2 * 60) + pos3) * timer_unit;
-        Logger.d(TAG, "All_Total_Times = " + All_Total_Times);
+        //Logger.d(TAG, "All_Total_Times = " + All_Total_Times);
 
         if (All_Total_Times > 0) {
             SaveTime = All_Total_Times;
@@ -630,7 +972,7 @@ public class ControlPageActivity extends AppCompatActivity {
         valueByte = Utils.hexlonggToByteArray(Time / timer_unit);
         mTimeOne = valueByte[0];
         mTimeTwo = valueByte[1];
-        Logger.d(TAG, "valueByte = " + mTimeOne + "," + mTimeTwo);
+        //Logger.d(TAG, "valueByte = " + mTimeOne + "," + mTimeTwo);
     }
 
     public void StartCountDownTimer(View view) {
@@ -659,7 +1001,7 @@ public class ControlPageActivity extends AppCompatActivity {
     }
 
     public void StopCountDownTimer(View view) {
-        if (mTimerStart == true) {
+        if (mTimerStart) {
             mLAMP_Timer = 3;
             mTimerStart = false;
             TimesWheelisEnable(true);
@@ -691,8 +1033,8 @@ public class ControlPageActivity extends AppCompatActivity {
         mSecs.setSelection(sec, true);
     }
 
-    public void reConnect(View view){
-        if(findViewById(R.id.noservice).getVisibility() == View.VISIBLE)
+    public void reConnect(View view) {
+        if (findViewById(R.id.noservice).getVisibility() == View.VISIBLE)
             findViewById(R.id.noservice).setVisibility(View.GONE);
 
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
@@ -706,7 +1048,7 @@ public class ControlPageActivity extends AppCompatActivity {
         DiscoverServices();
     }
 
-    private void DiscoverServices(){
+    private void DiscoverServices() {
         Handler delayHandler = new Handler();
         delayHandler.postDelayed(new Runnable() {
             @Override
@@ -726,7 +1068,6 @@ public class ControlPageActivity extends AppCompatActivity {
 
         UseDevicePageActivity.gotoControlPage = false;
 
-        mNoserviceDiscovered = (TextView) rootView.findViewById(R.id.no_service_text);
         mProgressDialog = new ProgressDialog(this);
         mTimer = showServiceDiscoveryAlert(false);
 
@@ -770,15 +1111,13 @@ public class ControlPageActivity extends AppCompatActivity {
     private void showNoServiceDiscoverAlert() {
         mConnected = false;
         findViewById(R.id.noservice).setVisibility(View.VISIBLE);   //No Serivce 顯示
-
-        // gotoUseDeviceActivity();
     }
 
     private void updateConnectionState(final Boolean enabled) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (enabled == true) {
+                if (enabled) {
                     Toast.makeText(ControlPageActivity.this,
                             getResources().getString(R.string.alert_message_bluetooth_connect),
                             Toast.LENGTH_SHORT).show();
@@ -860,7 +1199,7 @@ public class ControlPageActivity extends AppCompatActivity {
     }
 
     void SendData() {
-        if(!mConnected)
+        if (!mConnected)
             return;
 
         byte[] valueByte = new byte[6];
@@ -885,7 +1224,7 @@ public class ControlPageActivity extends AppCompatActivity {
             mINTENSITY = (byte) Integer.parseInt(AfterSplit[2]);    //String to int
             mSeekBar.setProgress(mINTENSITY & 0xff);   //byte to int
 
-            if ((Integer.parseInt(AfterSplit[1]) == 0 && mPowerStatus == false && FirstLaunch == true) || mReturnBack == true) {
+            if ((Integer.parseInt(AfterSplit[1]) == 0 && !mPowerStatus && FirstLaunch) || mReturnBack) {
                 if (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2) {
                     TimeOpen();
                     mTimerStart = true;
@@ -903,10 +1242,11 @@ public class ControlPageActivity extends AppCompatActivity {
                     }
                 }
                 FirstLaunch = false;
-                PowerOn(false);
+                if (Integer.parseInt(AfterSplit[1]) == 0)
+                    PowerOn(false);
             }
 
-            if ((mTimerStart == true && (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2)) || mReturnBack == true) {
+            if ((mTimerStart && (Integer.parseInt(AfterSplit[3]) == 1 || Integer.parseInt(AfterSplit[3]) == 2)) || mReturnBack) {
                 countDownTimer = (Integer.parseInt(AfterSplit[4]) * 256 + Integer.parseInt(AfterSplit[5])) * 1000;
                 Logger.i(TAG, "countDownTimer = " + countDownTimer);
                 formateTimer(countDownTimer);

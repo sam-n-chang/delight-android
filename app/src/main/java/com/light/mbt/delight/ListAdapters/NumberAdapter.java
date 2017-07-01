@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import com.light.mbt.delight.CommonUtils.Logger;
 import com.light.mbt.delight.CommonUtils.Utils;
 import com.light.mbt.delight.ControlPageActivity;
 import com.light.mbt.delight.widget.TosGallery;
@@ -18,7 +19,7 @@ import static com.light.mbt.delight.ControlPageActivity.mTimerStart;
  * Created by RED on 2017/5/26.
  */
 
-public class NumberAdapter extends BaseAdapter{
+public class NumberAdapter extends BaseAdapter {
     private final static String TAG = " Delight / " + ControlPageActivity.class.getSimpleName();
     private static Context mContext;
 
@@ -63,25 +64,20 @@ public class NumberAdapter extends BaseAdapter{
     public View getView(int position, View convertView, ViewGroup parent) {
         WheelTextView textView = null;
         boolean isEnabled = ((WheelView) parent).isEnable();
-        //Logger.i(TAG, "position2 = " + position);
+        Logger.i(TAG, "NumberAdapter position = " + position);
 
         if (null == convertView) {
             convertView = new WheelTextView(mContext);
             convertView.setLayoutParams(new TosGallery.LayoutParams(-1, mHeight));
             textView = (WheelTextView) convertView;
 
-            if (isEnabled == true || mTimerStart == true)
+            if (isEnabled || mTimerStart)
                 textView.setTextColor(normalColor);
             else
                 textView.setTextColor(disableColor);
 
-            if (position == 0) {        //修正分鐘為0 時字型大小錯誤
-                //Logger.i(TAG, "getSelectedItemPosition = " + ((WheelView) parent).getSelectedItemPosition());
-                if (isEnabled == true || mTimerStart == true)
-                    textView.setTextColor(selectedColor);
-            }
-                textView.setTextSize(25);
-                textView.setGravity(Gravity.CENTER);
+            textView.setTextSize(25);
+            textView.setGravity(Gravity.CENTER);
         }
 
         String text = mData[position];
