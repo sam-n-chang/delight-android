@@ -50,7 +50,7 @@ public class AboutPageActivity extends AppCompatActivity {
     public void onBackPressed() {
         Logger.i(TAG, "About onBackPressed");
 
-        Intent intent = new Intent(this, UseDevicePageActivity.class);
+        Intent intent = new Intent(this, ScanPageActivity.class);
         finish();
         overridePendingTransition(R.anim.slide_right, R.anim.push_right);
         startActivity(intent);

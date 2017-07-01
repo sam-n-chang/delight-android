@@ -31,7 +31,9 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.light.mbt.delight.CommonUtils.Constants;
 import com.light.mbt.delight.CommonUtils.DeLightParser;
@@ -46,6 +48,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -94,6 +98,8 @@ public class BluetoothLeService extends Service {
             "com.example.bluetooth.le.PAIRING_REQUEST";
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
+    public final static String GATT_STATUS_133 =
+            "com.example.bluetooth.le.GATT_STATUS_133";
 
     public static final int STATE_BONDED = 5;
     /**
@@ -134,47 +140,81 @@ public class BluetoothLeService extends Service {
     private final static BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            Logger.i(TAG, "onConnectionStateChange");
+            Logger.i(TAG, "onConnectionStateChange ---> " + status + " _ " + newState);
             String intentAction;
-            // GATT Server connected
-            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
-                intentAction = ACTION_GATT_CONNECTED;
-                synchronized (mGattCallback) {
-                    mConnectionState = STATE_CONNECTED;
-                }
-                broadcastConnectionUpdate(intentAction);
-                Logger.i(TAG, "Connected to GATT server.");
-                // Attempts to discover services after successful connection.
-                Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-            }
-            // GATT Server disconnected
-            else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_DISCONNECTED) {
+            //GATT_FAILURE = Constant Value: 257 (0x00000101)
+            if (status == BluetoothGatt.GATT_FAILURE) {
+                mBluetoothAdapter.disable();
+                Logger.i(TAG, "mBluetoothAdapter disable");
+
+                Timer single_timer = new Timer();
+                single_timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mBluetoothAdapter.enable();
+                        Logger.i(TAG, "mBluetoothAdapter enable");
+                    }
+                }, 1000);
+
                 intentAction = ACTION_GATT_DISCONNECTED;
                 synchronized (mGattCallback) {
                     mConnectionState = STATE_DISCONNECTED;
                 }
-                Logger.i(TAG, "Disconnected from GATT server.");
                 broadcastConnectionUpdate(intentAction);
             }
 
-            // GATT Server Connecting
-            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTING) {
-                intentAction = ACTION_GATT_CONNECTING;
-                synchronized (mGattCallback) {
-                    mConnectionState = STATE_CONNECTING;
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                // GATT Server connected
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    intentAction = ACTION_GATT_CONNECTED;
+                    synchronized (mGattCallback) {
+                        mConnectionState = STATE_CONNECTED;
+                    }
+                    broadcastConnectionUpdate(intentAction);
+                    Logger.i(TAG, "Connected SUCCESS");
+                    // Attempts to discover services after successful connection.
+                    //Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    intentAction = ACTION_GATT_DISCONNECTED;
+                    synchronized (mGattCallback) {
+                        mConnectionState = STATE_DISCONNECTED;
+                    }
+                    Logger.i(TAG, "Disconnected from GATT server.");
+                    broadcastConnectionUpdate(intentAction);
+
+                    close();
                 }
-                broadcastConnectionUpdate(intentAction);
-                Logger.i(TAG, "Connecting to GATT server.");
-                // Attempts to discover services after successful connection.
-                Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-            }
-            // GATT Server disconnecting
-            else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_DISCONNECTING) {
-                intentAction = ACTION_GATT_DISCONNECTING;
-                synchronized (mGattCallback) {
-                    mConnectionState = STATE_DISCONNECTING;
+
+                // GATT Server Connecting
+                if (newState == BluetoothProfile.STATE_CONNECTING) {
+                    intentAction = ACTION_GATT_CONNECTING;
+                    synchronized (mGattCallback) {
+                        mConnectionState = STATE_CONNECTING;
+                    }
+                    broadcastConnectionUpdate(intentAction);
+                    Logger.i(TAG, "Connecting SUCCESS.");
+                    // Attempts to discover services after successful connection.
+                    //Logger.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
                 }
+                // GATT Server disconnecting
+                else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
+                    intentAction = ACTION_GATT_DISCONNECTING;
+                    synchronized (mGattCallback) {
+                        mConnectionState = STATE_DISCONNECTING;
+                    }
+                    broadcastConnectionUpdate(intentAction);
+                    Logger.i(TAG, "STATE_DISCONNECTING");
+
+                    close();
+
+                }
+            } else if (status == 133) {
+                Log.d(TAG, "onConnectionStateChange received: " + status);
+                intentAction = GATT_STATUS_133;
+                mConnectionState = STATE_DISCONNECTED;
                 broadcastConnectionUpdate(intentAction);
+
+                close(); // 防止出現status 133
             }
         }
 
@@ -196,6 +236,7 @@ public class BluetoothLeService extends Service {
                         mContext.getResources().getString(R.string.dl_status_failure) + status;
                 Logger.i(TAG, dataLog2);
                 Logger.i(TAG, "onServicesDiscovered received: " + status);
+
                 broadcastConnectionUpdate(ACTION_GATT_SERVICE_DISCOVERY_UNSUCCESSFUL);
             }
         }
@@ -588,14 +629,22 @@ public class BluetoothLeService extends Service {
             return;
         }
 
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
-        mBluetoothGatt = device.connectGatt(context, false, mGattCallback);
-        Logger.i(TAG, "Trying to create a new connection.");
+        // Create handler for main thread where mContext is application context
+        Handler mHandler = new Handler(mContext.getMainLooper());
+        // Connect to BLE device from mHandler
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // We want to directly connect to the device, so we are setting the autoConnect
+                // parameter to false.
+                mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
+                Logger.i(TAG, "Trying to create a new connection.");
+            }
+        });
 
         //Clearing Bluetooth cache before disconnecting to the device
         if (Utils.getBooleanSharedPreference(mContext, "PREF_PAIR_CACHE_STATUS")) {
-            //Logger.e(getActivity().getClass().getName() + "Cache cleared on disconnect!");
+            Logger.e("Cache cleared on disconnect!");
             BluetoothLeService.refreshDeviceCache(BluetoothLeService.mBluetoothGatt);
         }
 
@@ -643,14 +692,13 @@ public class BluetoothLeService extends Service {
         } else {
             //Clearing Bluetooth cache before disconnecting to the device
             if (Utils.getBooleanSharedPreference(mContext, "PREF_PAIR_CACHE_STATUS")) {
-                //Logger.e(getActivity().getClass().getName() + "Cache cleared on disconnect!");
+                //Logger.e(TAG, getActivity().getClass().getName() + "Cache cleared on disconnect!");
                 BluetoothLeService.refreshDeviceCache(BluetoothLeService.mBluetoothGatt);
             }
             mBluetoothGatt.disconnect();
             String dataLog = "[" + mBluetoothDeviceName + "|" + mBluetoothDeviceAddress + "] " +
                     "Disconnection request sent";
             Logger.i(TAG, dataLog);
-            close();
         }
     }
 
@@ -679,7 +727,7 @@ public class BluetoothLeService extends Service {
         } else {
             mBluetoothGatt.discoverServices();
             String dataLog = "[" + mBluetoothDeviceName + "|" + mBluetoothDeviceAddress + "] " +
-                    "Service discovery request sent";
+                    mContext.getResources().getString(R.string.dl_service_discovery_request);
             Logger.i(TAG, dataLog);
         }
 
@@ -1012,6 +1060,7 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt = null;
 
         mConnectionState = STATE_DISCONNECTED;
+        Logger.i(TAG, "Close STATE_DISCONNECTED");
     }
 
     @Override
@@ -1055,7 +1104,7 @@ public class BluetoothLeService extends Service {
 
         mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 
-        return  mBluetoothAdapter != null;
+        return mBluetoothAdapter != null;
     }
 
     @Override

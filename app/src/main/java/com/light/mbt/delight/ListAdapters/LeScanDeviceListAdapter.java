@@ -17,10 +17,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import static com.light.mbt.delight.ScanPageActivity.mDevRssiValues;
-import static com.light.mbt.delight.ScanPageActivity.mDeviceAddress;
-import static com.light.mbt.delight.ScanPageActivity.mDeviceName;
+import static com.light.mbt.delight.ScanPageActivity.mDeviceList;
+import static com.light.mbt.delight.ScanPageActivity.mDeviceNameList;
 import static com.light.mbt.delight.ScanPageActivity.mLeDevices;
-import static com.light.mbt.delight.ScanPageActivity.mPairButton;
 import static com.light.mbt.delight.ScanPageActivity.mProgressdialog;
 
 /**
@@ -34,6 +33,7 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
     private static int rssiValue;
     private ItemFilter mFilter = new ItemFilter();
     private static Context mContext;
+
 
     public LeScanDeviceListAdapter(Context context) {
         super();
@@ -119,8 +119,22 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
         final String deviceName = device.getName();
         if (deviceName != null && deviceName.length() > 0) {
             try {
-                viewHolder.deviceName.setText(deviceName);
+                viewHolder.deviceName.setText(deviceName + "_" + (position + 1));
                 viewHolder.deviceAddress.setText(device.getAddress());
+
+                if (mDeviceList.size() > 0) {
+                    for (int i = 0; i < mDeviceList.size(); i++) {
+                        if (mDeviceList.get(i).getDeviceAddress().equalsIgnoreCase(device.getAddress())) {
+                            String Name = mDeviceList.get(i).getName();
+                            viewHolder.deviceName.setText(Name);
+                            mDeviceNameList.put(device.getAddress().toString(), Name);
+                            break;
+                        }
+                    }
+                }else{
+                    mDeviceNameList.put(device.getAddress().toString(), device.getName().toString());
+                }
+
                 byte rssival = (byte) mDevRssiValues.get(device.getAddress())
                         .intValue();
                 if (rssival != 0) {
@@ -138,21 +152,6 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
             viewHolder.deviceAddress.setText(device.getAddress());
         }
 
-        viewHolder.pairStatus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mPairButton = (Button) view;
-                mDeviceAddress = device.getAddress();
-                mDeviceName = device.getName();
-                String status = mPairButton.getText().toString();
-                if (status.equalsIgnoreCase(mContext.getResources().getString(R.string.bluetooth_pair))) {
-                    unpairDevice(device);
-                } else {
-                    pairDevice(device);
-                }
-
-            }
-        });
         return view;
     }
 

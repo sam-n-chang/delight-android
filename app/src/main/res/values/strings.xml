@@ -25,7 +25,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_add_dvice">Add</string>
-    <string name="action_edit_dvice">Edit</string>
+    <string name="action_edit_dvice">Rename</string>
     <string name="action_del_dvice">Delete</string>
     <string name="action_info_dvice">Information</string>
 

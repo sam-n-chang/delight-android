@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.light.mbt.delight.CommonUtils.Logger;
 import com.light.mbt.delight.CommonUtils.Utils;
 import com.light.mbt.delight.ControlPageActivity;
 import com.light.mbt.delight.widget.TosGallery;
@@ -64,7 +63,7 @@ public class NumberAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         WheelTextView textView = null;
         boolean isEnabled = ((WheelView) parent).isEnable();
-        Logger.i(TAG, "NumberAdapter position = " + position);
+        //Logger.i(TAG, "NumberAdapter position = " + position);
 
         if (null == convertView) {
             convertView = new WheelTextView(mContext);

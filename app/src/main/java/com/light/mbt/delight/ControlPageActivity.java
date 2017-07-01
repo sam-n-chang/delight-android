@@ -56,7 +56,6 @@ import java.util.TimerTask;
 import static com.light.mbt.delight.ListAdapters.NumberAdapter.normalColor;
 import static com.light.mbt.delight.R.id.MinsEdit;
 import static com.light.mbt.delight.R.id.seekBar;
-import static com.light.mbt.delight.UseDevicePageActivity.mLeDeviceListAdapter;
 import static com.light.mbt.delight.widget.WheelTextView.hoursArray;
 import static com.light.mbt.delight.widget.WheelTextView.minsecsArray;
 
@@ -72,17 +71,21 @@ public class ControlPageActivity extends AppCompatActivity {
     private ImageButton powerButton, timerButton, playButton, stopButton;
     private AlertDialog mAlert;
     private ProgressDialog mProgressDialog;
+    private EditText editText;
     private Timer mTimer;
     private EditTextView mHoursEdit, mMinsEdit, mSecsEdit;
     private MenuItem Device_Info;
+    private AlertDialog mAlertDialog;
 
     private static final long DELAY_PERIOD = 500;
     private static final long SERVICE_DISCOVERY_TIMEOUT = 10000;
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    private String mDeviceName, mDeviceAddress;
+    private static String mDeviceName, mDeviceAddress;
 
+    //Bluetooth adapter
+    private static BluetoothAdapter mBluetoothAdapter;
     // GATT service and characteristics
     private static BluetoothGattCharacteristic mReadCharacteristic = null;
     private BluetoothGattService mDeviceInformationService = null;
@@ -90,13 +93,15 @@ public class ControlPageActivity extends AppCompatActivity {
     public static boolean mTimerStart = false;
     private boolean mPowerStatus = false, mTimerStatus = false, mWheelViewStatus = false,
             mConnected = false, FirstLaunch = false, initWheel = false,
-            mOrientation = false, mReturnBack = false;
+            mOrientation = false, mReturnBack = false, mDel = false, mBackPage = false,
+            mGatt_DISCONNECTED = false;
     private byte mPower = 0, mLAMP_Timer = 0, mTimeOne = 0, mTimeTwo = 0, mINTENSITY = -1;
     private long SaveTime = 0, timer_unit = 1000, countDownTimer = 0;
     private boolean BLUETOOTH_STATUS_FLAG = true;
     private boolean BLUETOOTH_STATUS_FLAG2 = false;
     private boolean ItemSelectChange = false, changeFocus = false;
     private int currSelectItem = 0;
+    private int reConnect = 0;
 
     private DeviceList mDeviceList = null;
     private int countDownTimerStatus = CountDownTimerUtil.PREPARE;
@@ -138,21 +143,28 @@ public class ControlPageActivity extends AppCompatActivity {
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)
                     || BluetoothLeService.ACL_DISCONNECTED.equals(action)) {
                 Logger.i(TAG, "Service DISCONNECTED ----->" + BluetoothLeService.getConnectionState());
-
+                Logger.i(TAG, "Service DISCONNECTED ----->" + action);
                 mProgressDialog.dismiss();
                 if (mTimer != null)
                     mTimer.cancel();
 
-                if (mConnected)
-                    PowerOff(false);
+                if (!BluetoothLeService.ACL_DISCONNECTED.equals(action) || mBackPage) {
+                    //if (mConnected)
+                    //    PowerOff(false);
 
-                mConnected = false;
-                invalidateOptionsMenu();
-                if (!BLUETOOTH_STATUS_FLAG2)
-                    gotoUseDeviceActivity();
-                //showNoServiceDiscoverAlert();
+                    mConnected = false;
+                    mGatt_DISCONNECTED = true;
+                    invalidateOptionsMenu();
+                    if (!BLUETOOTH_STATUS_FLAG2)
+                        gotoScanPageActivity();
+                } else if (!mGatt_DISCONNECTED) {
+                    reConnecting();
+                }
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 Logger.i(TAG, "Service discovered");
+                if (findViewById(R.id.noservice).getVisibility() == View.VISIBLE)
+                    findViewById(R.id.noservice).setVisibility(View.GONE);
+
                 mConnected = true;
 
                 Device_Info.setEnabled(true);
@@ -184,6 +196,8 @@ public class ControlPageActivity extends AppCompatActivity {
                 if (mTimer != null)
                     mTimer.cancel();
                 showNoServiceDiscoverAlert();
+            } else if(BluetoothLeService.GATT_STATUS_133.equals(action)){
+                reConnecting();
             }
         }
     };
@@ -206,7 +220,7 @@ public class ControlPageActivity extends AppCompatActivity {
                 R.string.alert_message_exit_ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Intent intentActivity = new Intent(ControlPageActivity.this, UseDevicePageActivity.class);
+                Intent intentActivity = new Intent(ControlPageActivity.this, ScanPageActivity.class);
                 finish();
                 overridePendingTransition(
                         R.anim.slide_left, R.anim.push_left);
@@ -305,7 +319,8 @@ public class ControlPageActivity extends AppCompatActivity {
         if (mTimerStart)
             mTimerStart = false;
 
-        SaveDeviceData();
+        if (!mDel)
+            SaveDeviceData();
 
         super.onPause();
     }
@@ -313,7 +328,12 @@ public class ControlPageActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Logger.i(TAG, "Control onDestroy");
-        SaveDeviceData();
+        if (!mDel)
+            SaveDeviceData();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
+        if (mTimer != null)
+            mTimer.cancel();
 
         super.onDestroy();
     }
@@ -322,18 +342,35 @@ public class ControlPageActivity extends AppCompatActivity {
     public void onBackPressed() {
         Logger.i(TAG, "Control onBackPressed");
         SaveDeviceData();
-        gotoUseDeviceActivity();
+        mBackPage = true;
+        gotoScanPageActivity();
 
         super.onBackPressed();
     }
 
-    private void gotoUseDeviceActivity() {
+    private void gotoScanPageActivity() {
         Logger.i(TAG, "Control gotoUseDeviceActivity");
         Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
 
+        if (mAlertDialog != null && mAlertDialog.isShowing()) {
+            mAlertDialog.dismiss();
+            mAlertDialog.cancel();
+        }
+
+        if (BluetoothLeService.getConnectionState() == 2 ||
+                BluetoothLeService.getConnectionState() == 1 ||
+                BluetoothLeService.getConnectionState() == 4) {
+            BluetoothLeService.disconnect();
+
+            Toast.makeText(this,
+                    getResources().getString(R.string.alert_message_bluetooth_disconnect),
+                    Toast.LENGTH_SHORT).show();
+            Logger.i(TAG, "The BLE device is disconnected 2");
+        }
+
         mReadCharacteristic = null;
 
-        Intent intent = new Intent(this, UseDevicePageActivity.class);
+        Intent intent = new Intent(this, ScanPageActivity.class);
         finish();
         overridePendingTransition(R.anim.slide_left, R.anim.push_left);
         startActivity(intent);
@@ -342,17 +379,15 @@ public class ControlPageActivity extends AppCompatActivity {
 
     private void SaveDeviceData() {
         Utils.setDeviceListArraySharedPreference(ControlPageActivity.this, "DEVICE_LIST", mDeviceList, false);
-        //更新UseDevicePageActivity.mLeDeviceListAdapter
-        mLeDeviceListAdapter.mDeviceList.put(mDeviceList.getDeviceAddress(), mDeviceList);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home_main, menu);
+        menu.findItem(R.id.action_edit).setVisible(true);
         menu.findItem(R.id.action_info).setVisible(true);
-        menu.findItem(R.id.action_edit).setVisible(false);
-        menu.findItem(R.id.action_del).setVisible(false);
+        menu.findItem(R.id.action_del).setVisible(true);
         menu.findItem(R.id.action_add).setVisible(false);
         Device_Info = menu.findItem(R.id.action_info);
         Device_Info.setEnabled(false);
@@ -365,6 +400,14 @@ public class ControlPageActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
+                return true;
+            case R.id.action_edit:
+                customDialog();
+                return true;
+            case R.id.action_del:
+                Utils.setDeviceListArraySharedPreference(ControlPageActivity.this, "DEVICE_LIST", mDeviceList, true);
+                mDel = true;
+                gotoScanPageActivity();
                 return true;
             case R.id.action_info:
                 DeviceInformationDialog();
@@ -533,6 +576,13 @@ public class ControlPageActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
             Logger.i(TAG, "afterTextChanged = " + s.toString());
+            if (mHoursEdit.hasFocus()) {
+                ((WheelTextView) mHours.getSelectedView()).setText("");
+            } else if (mMinsEdit.hasFocus()) {
+                ((WheelTextView) mMins.getSelectedView()).setText("");
+            } else if (mSecsEdit.hasFocus()) {
+                ((WheelTextView) mSecs.getSelectedView()).setText("");
+            }
         }
 
         @Override
@@ -725,7 +775,7 @@ public class ControlPageActivity extends AppCompatActivity {
     private TosAdapterView.OnItemSelectedListener mListener = new TosAdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(TosAdapterView<?> parent, View view, int position, long id) {
-            Logger.i(TAG, "onItemSelected position = " + position);
+            //Logger.i(TAG, "onItemSelected position = " + position);
             boolean isEnabled = ((WheelView) parent).isEnable();
             ItemSelectChange = true;
 
@@ -737,7 +787,7 @@ public class ControlPageActivity extends AppCompatActivity {
 
             int index = Integer.parseInt(view.getTag().toString());
             int count = parent.getChildCount();
-            Logger.i(TAG, "onItemSelected position = " + index + "_" + count);
+            //Logger.i(TAG, "onItemSelected position = " + index + "_" + count);
 
             if (index < count - 1) {
                 ((WheelTextView) parent.getChildAt(index + 1)).setTextSize(25);    //下方字體大小
@@ -1033,40 +1083,8 @@ public class ControlPageActivity extends AppCompatActivity {
         mSecs.setSelection(sec, true);
     }
 
-    public void reConnect(View view) {
-        if (findViewById(R.id.noservice).getVisibility() == View.VISIBLE)
-            findViewById(R.id.noservice).setVisibility(View.GONE);
-
-        Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
-        if (BluetoothLeService.getConnectionState() == 0)
-            BluetoothLeService.connect(mDeviceAddress, mDeviceName, ControlPageActivity.this);
-        else if (BluetoothLeService.getConnectionState() > 0)
-            BluetoothLeService.reconnect();
-
-        mTimer = showServiceDiscoveryAlert(false);
-
-        DiscoverServices();
-    }
-
-    private void DiscoverServices() {
-        Handler delayHandler = new Handler();
-        delayHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Logger.i(TAG, "Discover service called");
-                if (BluetoothLeService.getConnectionState() == BluetoothLeService.STATE_CONNECTED) {
-                    BluetoothLeService.discoverServices();
-                    Logger.i(TAG, "Discover service found");
-                }
-            }
-        }, DELAY_PERIOD);
-    }
-
     private void initializeBluetooth() {
-        LayoutInflater factory = LayoutInflater.from(this);
-        final View rootView = factory.inflate(R.layout.servicediscovery_temp, null);
-
-        UseDevicePageActivity.gotoControlPage = false;
+        ScanPageActivity.gotoControlPage = false;
 
         mProgressDialog = new ProgressDialog(this);
         mTimer = showServiceDiscoveryAlert(false);
@@ -1076,54 +1094,6 @@ public class ControlPageActivity extends AppCompatActivity {
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         DiscoverServices();
-    }
-
-    //No Service Discovery show Alert
-    private Timer showServiceDiscoveryAlert(boolean isReconnect) {
-        mProgressDialog.setTitle(getString(R.string.progress_tile_service_discovering));
-        if (!isReconnect) {
-            mProgressDialog.setMessage(getString(R.string.progress_message_service_discovering));
-        } else {
-            mProgressDialog.setMessage(getString(R.string.progress_message_reconnect));
-        }
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.show();
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (mProgressDialog != null) {
-                    mProgressDialog.dismiss();
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            showNoServiceDiscoverAlert();
-                        }
-                    });
-                }
-            }
-        }, SERVICE_DISCOVERY_TIMEOUT);
-        return timer;
-    }
-
-    private void showNoServiceDiscoverAlert() {
-        mConnected = false;
-        findViewById(R.id.noservice).setVisibility(View.VISIBLE);   //No Serivce 顯示
-    }
-
-    private void updateConnectionState(final Boolean enabled) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (enabled) {
-                    Toast.makeText(ControlPageActivity.this,
-                            getResources().getString(R.string.alert_message_bluetooth_connect),
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 
     //取得Service
@@ -1209,7 +1179,8 @@ public class ControlPageActivity extends AppCompatActivity {
         valueByte[3] = mLAMP_Timer;    //Timer
         valueByte[4] = mTimeOne;    //Time1
         valueByte[5] = mTimeTwo;    //Time2
-        BluetoothLeService.writeCharacteristicNoresponse(mReadCharacteristic, valueByte);
+        if (mReadCharacteristic != null)
+            BluetoothLeService.writeCharacteristicNoresponse(mReadCharacteristic, valueByte);
     }
 
     private void displayData(String data) {
@@ -1270,9 +1241,10 @@ public class ControlPageActivity extends AppCompatActivity {
 
     private void DeviceInformationDialog() {
         final View item = LayoutInflater.from(this).inflate(R.layout.device_information_measurement, null);
-        DeviceInformationService.Init(mDeviceInformationService, item); //初始化
+        if (mDeviceInformationService != null)
+            DeviceInformationService.Init(mDeviceInformationService, item); //初始化
 
-        new AlertDialog.Builder(this)
+        mAlertDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.alertdialog_device_info_title)
                 .setView(item)
                 .setPositiveButton(R.string.alertdialog_rename_ok, new DialogInterface.OnClickListener() {
@@ -1281,6 +1253,149 @@ public class ControlPageActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+    private void customDialog() {
+        final View item = LayoutInflater.from(ControlPageActivity.this).inflate(R.layout.rename, null);
+        String mDeviceName = mDeviceList.getName().toString();
+        editText = (EditText) item.findViewById(R.id.edittext);
+        editText.setText(mDeviceName);
+        editText.setSelection(mDeviceName.length());
+
+        mAlertDialog = new AlertDialog.Builder(ControlPageActivity.this)
+                .setTitle(R.string.alertdialog_rename_title)
+                .setMessage(R.string.alertdialog_rename_meggage)
+                .setView(item)
+                .setPositiveButton(R.string.alertdialog_rename_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String DeviceName = editText.getText().toString();
+                        if (!DeviceName.equals("")) {
+                            mDeviceList.setName(DeviceName);
+                            String Address = mDeviceList.getDeviceAddress();
+                            getSupportActionBar().setTitle(DeviceName);  //設定ActionBar 標題
+                            Utils.setDeviceListArraySharedPreference(ControlPageActivity.this, "DEVICE_LIST", mDeviceList, false);
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.alertdialog_rename_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .show();
+    }
+
+    public void cleanReName(View view) {
+        Logger.i(TAG, editText.getText().toString());
+        editText.setText("");
+    }
+
+    //No Service Discovery show Alert
+    private Timer showServiceDiscoveryAlert(boolean isReconnect) {
+        mProgressDialog.setTitle(getString(R.string.progress_tile_service_discovering));
+        if (!isReconnect) {
+            mProgressDialog.setMessage(getString(R.string.progress_message_service_discovering));
+        } else {
+            mProgressDialog.setMessage(getString(R.string.progress_message_reconnect));
+        }
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+
+        if (!mProgressDialog.isShowing()) {
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.show();
+        }
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (mProgressDialog != null) {
+
+                    if (reConnect > 0)
+                        mProgressDialog.dismiss();
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (reConnect > 0) {
+                                showNoServiceDiscoverAlert();
+                                reConnect = 0;
+                            } else {
+                                //自動重新連接一次
+                                Logger.w(TAG, "No Service to reConnecting");
+                                if (mTimer != null)
+                                    mTimer.cancel();
+                                reConnecting();
+                                reConnect++;
+                            }
+                        }
+                    });
+                }
+            }
+        }, SERVICE_DISCOVERY_TIMEOUT);
+        return timer;
+    }
+
+    private void showNoServiceDiscoverAlert() {
+        mConnected = false;
+        findViewById(R.id.noservice).setVisibility(View.VISIBLE);   //No Serivce 顯示
+    }
+
+    private void updateConnectionState(final Boolean enabled) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (enabled) {
+                    Toast.makeText(ControlPageActivity.this,
+                            getResources().getString(R.string.alert_message_bluetooth_connect),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    public void reConnect(View view) {
+        if (findViewById(R.id.noservice).getVisibility() == View.VISIBLE)
+            findViewById(R.id.noservice).setVisibility(View.GONE);
+
+        reConnecting();
+    }
+
+    private void reConnecting() {
+        Logger.i(TAG, "reConnecting ---->" + mDeviceAddress);
+        Logger.i(TAG, "BLE Connection State---->" + BluetoothLeService.getConnectionState());
+        if (BluetoothLeService.getConnectionState() == 0)
+            BluetoothLeService.connect(mDeviceAddress, mDeviceName, ControlPageActivity.this);
+        else if (BluetoothLeService.getConnectionState() > 0)
+            BluetoothLeService.reconnect();
+
+        mTimer = showServiceDiscoveryAlert(false);
+
+        //Delay 2 second to call DiscoverServices
+        Handler delayHandler = new Handler();
+        delayHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                DiscoverServices();
+            }
+        }, 2000);
+    }
+
+    private void DiscoverServices() {
+        Handler delayHandler = new Handler();
+        delayHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Logger.i(TAG, "Discover service called");
+                if (BluetoothLeService.getConnectionState() == BluetoothLeService.STATE_CONNECTED) {
+                    BluetoothLeService.discoverServices();
+                    Logger.i(TAG, "Discover service found");
+                }
+            }
+        }, 2000);
     }
 
 }

@@ -42,7 +42,7 @@
             android:name=".ScanPageActivity"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask"
-            android:theme="@style/AppTheme"
+            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan">
             <!--</intent-filter>-->
         </activity>

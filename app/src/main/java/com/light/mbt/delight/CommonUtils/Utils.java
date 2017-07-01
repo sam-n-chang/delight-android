@@ -667,7 +667,7 @@ public class Utils {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
             File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + File.separator + "CySmart" + File.separator + "file.jpg");
+                    + File.separator + "DeLight" + File.separator + "file.jpg");
             try {
                 FileOutputStream fo = new FileOutputStream(f);
                 fo.write(bytes.toByteArray());
