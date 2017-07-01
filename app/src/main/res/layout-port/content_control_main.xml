@@ -398,7 +398,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1.0"
-                        android:text="Hours"
+                        android:text="@string/time_hour"
                         android:textAlignment="center"/>
 
                     <TextView
@@ -406,7 +406,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1.0"
-                        android:text="Mins"
+                        android:text="@string/time_min"
                         android:textAlignment="center"/>
 
                     <TextView
@@ -414,7 +414,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1.0"
-                        android:text="Secs"
+                        android:text="@string/time_sec"
                         android:textAlignment="center"/>
                 </LinearLayout>
 

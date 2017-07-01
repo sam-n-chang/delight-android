@@ -6,7 +6,11 @@
     <string name="device_add_message">Please touch item to add device</string>
     <string name="use_device_add_message">Please Add Device ↗</string>
     <string name="noservice_message">No Service，Please touch screen Re-acquired Services</string>
+    <string name="no_device_found_message">No Device Found</string>
 
+    <string name="time_hour">Hours</string>
+    <string name="time_min">Mins</string>
+    <string name="time_sec">Secs</string>
 
     <!-- Navigation drawer elements -->
     <string name="title_devices">BLE Device Scan</string>
@@ -29,11 +33,23 @@
     <string name="action_del_dvice">Delete</string>
     <string name="action_info_dvice">Information</string>
 
-    <!-- ReName AlertDialog -->
+    <!-- AlertDialog -->
     <string name="alertdialog_rename_title">Display name</string>
     <string name="alertdialog_rename_meggage">Please, provise a new display name:</string>
     <string name="alertdialog_rename_ok">OK</string>
     <string name="alertdialog_rename_cancel">Cancel</string>
+    <string name="alert_message_exit">Do you want to exit the application?</string>
+    <string name="alert_message_exit_cancel">Cancel</string>
+    <string name="alert_message_exit_ok">OK</string>
+    <string name="alert_message_bluetooth_reconnect">Please Turn Bluetooth ON</string>
+    <string name="alert_message_bluetooth_disconnect">The BLE device is disconnected</string>
+    <string name="alert_message_bluetooth_connect">The BLE device is connected</string>
+    <string name="alert_message_bonding_title">Bonding</string>
+    <string name="alert_message_bonding_message">Bonding is in process \nPlease wait..</string>
+    <string name="alert_message_connect_title">Device Connection</string>
+    <string name="alert_message_connect">Connecting to the device</string>
+    <string name="alert_message_wait">Please wait..</string>
+    <string name="alert_message_service_undiscovered">No services found</string>
 
     <!-- Image descriptors -->
     <string name="image_splash_logo">Splash logo</string>
@@ -54,16 +70,6 @@
     <string name="unknown_service">Unknown service</string>
 
     <string name="profile_scan_fragment">Delight BLE Devices</string>
-    <string name="alert_message_exit_ok">OK</string>
-    <string name="alert_message_bluetooth_reconnect">Please Turn Bluetooth ON</string>
-    <string name="alert_message_bluetooth_disconnect">The BLE device is disconnected</string>
-    <string name="alert_message_bluetooth_connect">The BLE device is connected</string>
-    <string name="alert_message_bonding_title">Bonding</string>
-    <string name="alert_message_bonding_message">Bonding is in process \nPlease wait..</string>
-    <string name="alert_message_connect_title">Device Connection</string>
-    <string name="alert_message_connect">Connecting to the device</string>
-    <string name="alert_message_wait">Please wait..</string>
-    <string name="alert_message_service_undiscovered">No services found</string>
     <string name="progress_tile_service_discovering">Service Discovery</string>
     <string name="progress_message_service_discovering">Discovering services. Please wait.</string>
     <string name="progress_message_reconnect"> Reconnecting to device. Please wait.</string>

@@ -153,7 +153,8 @@
             android:text="@string/div_software_name"
             android:textColor="@color/actionbar_bg_color"
             android:textSize="@dimen/textsize_very_small"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/div_software"
@@ -163,7 +164,8 @@
             android:gravity="center"
             android:padding="5dp"
             android:textColor="@color/actionbar_bg_color"
-            android:textSize="@dimen/textsize_very_small" />
+            android:textSize="@dimen/textsize_very_small"
+            android:visibility="gone"/>
 
 
         <TextView

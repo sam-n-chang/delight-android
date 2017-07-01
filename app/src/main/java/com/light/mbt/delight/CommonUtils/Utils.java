@@ -575,7 +575,7 @@ public class Utils {
         }
 
         if (FirstAdd == true) {
-            mDeviceList.setName(mDeviceList.getName().toString() + "_" + (deviceList.size() + 1));
+            //mDeviceList.setName(mDeviceList.getName().toString() + "_" + (deviceList.size() + 1));
             deviceList.add(mDeviceList);
         }
 

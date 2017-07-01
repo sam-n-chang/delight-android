@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_info">裝置資訊</string>
+
+    <string name="device_add_message">請點擊項目連接裝置</string>
+    <string name="noservice_message">無服務，請點擊畫面重新取得服務</string>
+
+    <string name="time_hour">時</string>
+    <string name="time_min">分</string>
+    <string name="time_sec">秒</string>
+
+    <!-- Navigation drawer elements -->
+    <string name="title_home">首頁</string>
+    <string name="title_products">MBT 產品</string>
+    <string name="title_contact">聯絡我們</string>
+    <string name="title_about">關於</string>
+
+    <string name="action_settings">設定</string>
+    <string name="action_add_dvice">增加</string>
+    <string name="action_edit_dvice">重新命名</string>
+    <string name="action_del_dvice">刪除</string>
+    <string name="action_info_dvice">資訊</string>
+
+    <!-- AlertDialog -->
+    <string name="alertdialog_rename_title">裝置顯示名稱</string>
+    <string name="alertdialog_rename_meggage">請輸入新的裝置顯示名稱:</string>
+    <string name="alertdialog_rename_ok">確定</string>
+    <string name="alertdialog_rename_cancel">取消</string>
+    <string name="alert_message_exit">是否要退出應用程式?</string>
+    <string name="alert_message_exit_cancel">取消</string>
+    <string name="alert_message_exit_ok">確定</string>
+    <string name="alert_message_bluetooth_reconnect">請開啟藍牙</string>
+    <string name="alert_message_bluetooth_disconnect">BLE 裝置已斷開連接</string>
+    <string name="alert_message_bluetooth_connect">BLE 裝置已連接</string>
+    <string name="alert_message_connect_title">連接裝置</string>
+    <string name="alert_message_connect">連接裝置</string>
+    <string name="alert_message_wait">請稍候…</string>
+    <string name="alert_message_service_undiscovered">找不到服務</string>
+
+    <!-- Bluetoolth -->
+    <string name="ble_not_supported">不支援BLE</string>
+    <string name="label_device_address">裝置位址:</string>
+    <string name="label_state">狀態:</string>
+    <string name="connected">連接</string>
+    <string name="disconnected">斷線</string>
+    <string name="error_bluetooth_not_supported">不支援藍牙.</string>
+    <string name="send_data">傳送資料</string>
+
+    <string name="unknown_device">不明裝置</string>
+    <string name="unknown_characteristic">不明特徵</string>
+    <string name="unknown_service">不明服務</string>
+
+    <string name="progress_tile_service_discovering">尋找服務</string>
+    <string name="progress_message_service_discovering">尋找服務中. 請稍候…</string>
+
+    <!-- Device discovery elements -->
+    <string name="device_unknown">不明裝置</string>
+    <string name="device_ble_not_supported">手機不支援BLE</string>
+    <string name="device_bluetooth_on">藍牙已成功啟動</string>
+    <string name="device_bluetooth_not_supported">手機不支援藍牙</string>
+
+    <!-- profile control elements -->
+    <string name="profile_control_unknown_service">不明服務</string>
+    <string name="profile_control_no_device_message">下拉更新…</string>
+    <string name="profile_control_device_scanning">更新中, 請稍候…</string>
+    <string name="profile_cannot_connect_message">無法連接裝置</string>
+    <string name="profile_control_stop_notification_toast">通知已停用</string>
+
+    <!-- Device information profile elements -->
+    <string name="alertdialog_device_info_title">裝置資訊</string>
+    <string name="div_manufacturer_name">製造商名稱 </string>
+    <string name="div_model_name">型號 </string>
+    <string name="div_serial_name">序號 </string>
+    <string name="div_hardware_name">硬體版本 </string>
+    <string name="div_firmware_name">韌體版本 </string>
+    <string name="div_software_name">軟體版本 </string>
+
+</resources>

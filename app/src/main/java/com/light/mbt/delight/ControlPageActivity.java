@@ -406,6 +406,7 @@ public class ControlPageActivity extends AppCompatActivity {
                 return true;
             case R.id.action_del:
                 Utils.setDeviceListArraySharedPreference(ControlPageActivity.this, "DEVICE_LIST", mDeviceList, true);
+                ScanPageActivity.mDeviceNameList.remove(mDeviceList.getDeviceAddress().toString());
                 mDel = true;
                 gotoScanPageActivity();
                 return true;

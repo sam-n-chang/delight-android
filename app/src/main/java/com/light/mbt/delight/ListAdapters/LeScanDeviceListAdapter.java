@@ -124,15 +124,17 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
 
                 if (mDeviceList.size() > 0) {
                     for (int i = 0; i < mDeviceList.size(); i++) {
-                        if (mDeviceList.get(i).getDeviceAddress().equalsIgnoreCase(device.getAddress())) {
+                        if (mDeviceList.get(i).getDeviceAddress().toString().equalsIgnoreCase(device.getAddress().toString())) {
                             String Name = mDeviceList.get(i).getName();
                             viewHolder.deviceName.setText(Name);
                             mDeviceNameList.put(device.getAddress().toString(), Name);
                             break;
                         }
                     }
-                }else{
-                    mDeviceNameList.put(device.getAddress().toString(), device.getName().toString());
+                }
+
+                if (!mDeviceNameList.containsKey(device.getAddress())){
+                    mDeviceNameList.put(device.getAddress().toString(), deviceName + "_" + (position + 1));
                 }
 
                 byte rssival = (byte) mDevRssiValues.get(device.getAddress())
@@ -140,9 +142,7 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
                 if (rssival != 0) {
                     viewHolder.deviceRssi.setText(String.valueOf(rssival));
                 }
-                String pairStatus = (device.getBondState() == BluetoothDevice.BOND_BONDED) ? mContext.getResources().getString(R.string.bluetooth_pair) : mContext.getResources().getString(R.string.bluetooth_unpair);
-                viewHolder.pairStatus.setText(pairStatus);
-            } catch (Exception e) {
+             } catch (Exception e) {
                 e.printStackTrace();
             }
 

@@ -375,7 +375,7 @@ public class ScanPageActivity extends AppCompatActivity
         DeviceList deviceList;
         if (mDeviceList.size() > 0) {
             for (int i = 0; i < mDeviceList.size(); i++) {
-                if (mDeviceList.get(i).getDeviceAddress().equalsIgnoreCase(mDeviceAddress)) {
+                if (mDeviceList.get(i).getDeviceAddress().toString().equalsIgnoreCase(mDeviceAddress)) {
                     return mDeviceList.get(i);
                 }
             }
@@ -552,7 +552,8 @@ public class ScanPageActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            alertbox();
+            //super.onBackPressed();
         }
     }
 
@@ -623,7 +624,6 @@ public class ScanPageActivity extends AppCompatActivity
             mSwipeLayout.setRefreshing(false);
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
-
     }
 
     /**
@@ -747,5 +747,41 @@ public class ScanPageActivity extends AppCompatActivity
             if (mAlert != null && mAlert.isShowing())
                 mAlert.dismiss();
         }
+    }
+
+    /**
+     * Method to create an alert before user exit from the application
+     */
+    void alertbox() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                ScanPageActivity.this);
+        builder.setMessage(
+                getResources().getString(R.string.alert_message_exit))
+                .setCancelable(false)
+                .setTitle(getResources().getString(R.string.app_name))
+                .setPositiveButton(
+                        getResources()
+                                .getString(R.string.alert_message_exit_ok),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // Finish the current activity
+                                ScanPageActivity.this.finish();
+                                Intent gattServiceIntent = new Intent(getApplicationContext(),
+                                        BluetoothLeService.class);
+                                stopService(gattServiceIntent);
+
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(
+                                R.string.alert_message_exit_cancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // Cancel the dialog box
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }
