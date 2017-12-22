@@ -9,8 +9,10 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.light.mbt.delight.CommonUtils.Logger;
 import com.light.mbt.delight.R;
 
 import java.lang.reflect.Method;
@@ -105,7 +107,10 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
                     .findViewById(R.id.device_name);
             viewHolder.deviceRssi = (TextView) view
                     .findViewById(R.id.device_rssi);
-            viewHolder.pairStatus = (Button) view.findViewById(R.id.btn_pair);
+            viewHolder.pairStatus = (Button) view
+                    .findViewById(R.id.btn_pair);
+            viewHolder.image = (ImageView) view
+                    .findViewById(R.id.imageView2);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
@@ -141,6 +146,11 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
                         .intValue();
                 if (rssival != 0) {
                     viewHolder.deviceRssi.setText(String.valueOf(rssival));
+                }
+
+                if (deviceName.indexOf("110") > -1){    //切換Product Size 圖片
+                    Logger.v("Delight size", deviceName);
+                    viewHolder.image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.d_110));
                 }
              } catch (Exception e) {
                 e.printStackTrace();
@@ -202,6 +212,7 @@ public class LeScanDeviceListAdapter extends BaseAdapter implements Filterable {
         TextView deviceName;
         TextView deviceAddress;
         TextView deviceRssi;
+        ImageView image;
         Button pairStatus;
     }
 

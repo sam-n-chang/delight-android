@@ -586,7 +586,7 @@ public class ScanPageActivity extends AppCompatActivity
                 intent = new Intent(Intent.ACTION_VIEW, uri);
                 break;
             case R.id.nav_products:
-                uri = Uri.parse("http://www.mathbright.com.tw/Product.html");
+                uri = Uri.parse("http://www.mathbright.com.tw/065delight.html");
                 intent = new Intent(Intent.ACTION_VIEW, uri);
                 break;
             case R.id.nav_contactus:
